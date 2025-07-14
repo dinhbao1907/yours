@@ -1921,32 +1921,27 @@ function captureDesignImage() {
   });
 }
 
-// Test function to verify capture is working
-function testCapture() {
-  console.log('🧪 Testing capture function...');
-  captureDesignImage().then(dataUrl => {
-    if (dataUrl) {
-      console.log('✅ Capture test successful, data URL length:', dataUrl.length);
-      // Create a test image element to verify
-      const testImg = document.createElement('img');
-      testImg.style.position = 'fixed';
-      testImg.style.top = '10px';
-      testImg.style.right = '10px';
-      testImg.style.width = '200px';
-      testImg.style.height = '200px';
-      testImg.style.border = '2px solid red';
-      testImg.style.zIndex = '10000';
-      testImg.src = dataUrl;
-      document.body.appendChild(testImg);
-      
-      // Remove after 5 seconds
-      setTimeout(() => {
-        if (testImg.parentNode) {
-          testImg.parentNode.removeChild(testImg);
+// Update main action button label and click handler for customers
+window.addEventListener('DOMContentLoaded', function() {
+  // ... existing code ...
+  const role = getRoleFromToken();
+  const mainActionBtnText = document.getElementById('mainActionBtnText');
+  const submitDesignBtn = document.getElementById('submitDesign');
+  if (role === 'customer') {
+    if (mainActionBtnText) mainActionBtnText.textContent = 'In Ngay';
+    if (submitDesignBtn) {
+      submitDesignBtn.onclick = function(e) {
+        e.preventDefault();
+        // Show the In Ngay modal
+        const modal = document.getElementById('inNgayModal');
+        const shirtImg = document.querySelector('.product-image');
+        const modalImg = document.getElementById('inNgayShirtImg');
+        if (modal && modalImg && shirtImg) {
+          modalImg.src = shirtImg.src;
+          modal.style.display = 'block';
         }
-      }, 5000);
-    } else {
-      console.error('❌ Capture test failed');
+      };
     }
-  });
-}
+  }
+  // ... existing code ...
+});

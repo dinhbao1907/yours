@@ -97,7 +97,6 @@
         <div class="action-buttons">
           <button id="submitDesign" class="popup-btn"><img src="resources/new.svg" alt="Color Icon" class="icon"> <span id="mainActionBtnText">Đăng bài</span></button>
           <button id="saveDraftBtn" class="popup-btn secondary"><img src="resources/save.svg" alt="Color Icon" class="icon"> Lưu nháp</button>
-          <button onclick="testCapture()" class="popup-btn" style="background: #ff6b6b; color: white; margin-top: 10px;">🧪 Test Capture</button>
         </div>
         <!-- Layer Panel for managing layers (now only in right-panel) -->
         <div class="layer-panel">
@@ -443,5 +442,18 @@
     }
   })();
   </script>
+  <!-- Add modal for 'In Ngay' (customer only) just before </main> -->
+<div class="modal" id="inNgayModal" style="display:none;">
+  <div class="modal-content" style="max-width:400px;text-align:center;">
+    <h3>In Ngay - Dịch vụ in áo</h3>
+    <img id="inNgayShirtImg" src="resources/tshirt-white.png" alt="Shirt Preview" style="width:200px;margin:16px auto;display:block;"/>
+    <div style="margin:12px 0;">
+      <b>Chi tiết dịch vụ:</b>
+      <p>Bạn sẽ in thiết kế của mình lên áo thun chất lượng cao.</p>
+      <p><b>Giá dịch vụ: 150.000 VND</b></p>
+    </div>
+    <button onclick="document.getElementById('inNgayModal').style.display='none'" style="margin-top:12px;">Đóng</button>
+  </div>
+</div>
   </body>
 </html>
