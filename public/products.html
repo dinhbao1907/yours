@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Áo Thun Unisex Basic Form Rộng</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="css/homepage.css">
+  <link rel="stylesheet" href="css/product.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="resources/web-logo.ico">
+</head>
+<body>
+<header class="header">
+    <div class="logo">
+      <img src="resources/logo.png" alt="YOURS Logo" class="logo">
+    </div>
+    <nav class="nav">
+      <ul>
+        <li><button type="button" class="user-btn" onclick="activateTab('home')">Trang chủ</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('all-products.html')">Sản phẩm</button></li>
+        <li><button type="button" class="user-btn" onclick="activateTab('design')">Thiết kế</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('about.html')">Về chúng tôi</button></li>
+      </ul>
+    </nav>
+    <div class="user-menu">
+      <button id="accountBtn" class="user-btn" onclick="toggleDropdown()">Tài Khoản</button>
+      <div id="userDropdown" class="dropdown">
+        <a href="user-profile.html" class="dropdown-item">Thông tin cá nhân</a>
+        <a href="designer-store.html" class="dropdown-item" id="designerStoreMenu">Cửa hàng của tôi</a>
+        <a href="cart.html" class="dropdown-item">Giỏ hàng</a>
+        <a href="choose-login.html" class="dropdown-item">Đăng xuất</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="product-container">
+    <!-- Hình ảnh sản phẩm -->
+    <div class="product-image slide-in-left">
+      <img src="resources/tshirt-white.png" alt="Sản phẩm" id="productImage">
+    </div>
+    <!-- Thông tin sản phẩm -->
+    <div class="product-details slide-in-right">
+      <h1 id="productName" class="skeleton-loader" style="display:inline-block; width: 220px; height: 2.2em; margin-bottom: 8px;">&nbsp;</h1>
+      <span class="likes" style="margin-left:16px;"><i class="fas fa-heart" id="likeHeart"></i> <span id="likeCount">0</span> lượt thích</span>
+      <div class="designer-info">
+        <span>by <a id="designerNameLink" href="#"><b id="designerName" class="skeleton-loader" style="width: 120px; height: 1.2em; display: inline-block;">&nbsp;</b></a></span>
+      </div>
+      <div class="price skeleton-loader" id="productPrice" style="width: 120px; height: 1.5em; margin-bottom: 12px;">&nbsp;</div>
+      <div class="product-meta">
+        <span><b>Mã sản phẩm:</b> <span id="productCode">-</span></span><br>
+        <span><b>Chất liệu:</b> <span id="productMaterial">-</span></span><br>
+        <span><b>Màu sắc:</b> <span id="productColor">-</span></span>
+      </div>
+      <div class="size-options">
+        <h3>Kích cỡ</h3>
+        <div style="display:flex;align-items:center;gap:32px;background:#f8f8fd;border:1.5px solid #e0e0f7;border-radius:12px;padding:16px 18px 12px 18px;margin-bottom:18px;">
+          <div class="sizes" style="margin-bottom:0;display:flex;gap:14px;">
+            <button class="size-btn" style="min-width:48px;height:42px;font-size:1.1rem;border-radius:8px;">S</button>
+            <button class="size-btn" style="min-width:48px;height:42px;font-size:1.1rem;border-radius:8px;">M</button>
+            <button class="size-btn" style="min-width:48px;height:42px;font-size:1.1rem;border-radius:8px;">L</button>
+            <button class="size-btn" style="min-width:48px;height:42px;font-size:1.1rem;border-radius:8px;">XL</button>
+            <button class="size-btn" style="min-width:48px;height:42px;font-size:1.1rem;border-radius:8px;">XXL</button>
+          </div>
+          <div class="quantity-section" style="display:flex;align-items:center;gap:8px;">
+            <label for="productQuantity" style="font-weight:600;font-size:1.05rem;">Số lượng:</label>
+            <input type="number" id="productQuantity" min="1" value="1" style="width:60px;height:38px;padding:4px 10px;border-radius:8px;border:1.5px solid #bdbdf7;font-size:1.08rem;font-weight:600;background:#fff;">
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="add-to-cart">Thêm vào giỏ hàng</button>
+        <button class="buy-now">Mua ngay</button>
+        <button class="size-guide-btn" type="button" onclick="openSizeGuideOverlay()">Hướng dẫn chọn size</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product details and reviews side by side -->
+<div class="product-details-row" style="display: flex; gap: 32px; align-items: flex-start; margin: 32px auto; max-width: 1200px;">
+  <div class="product-description slide-in-left" style="flex: 1 1 40%; min-width: 0;">
+    <h2>Mô tả sản phẩm</h2>
+    <p id="productDescription" class="skeleton-loader" style="width: 80%; height: 1.2em;">&nbsp;</p>
+  </div>
+  <div class="reviews-section slide-in-up" style="flex: 1.3 1 60%; min-width: 0;">
+    <h2>Đánh giá sản phẩm</h2>
+    <div class="overall-rating">
+      <span class="overall-score">0 ★</span>
+      <span class="rating-count">(0 đánh giá)</span>
+      <span class="stars"></span>
+    </div>
+
+      <div class="reviews-list">
+        <p id="reviewsLoading" class="skeleton-loader" style="width: 60%; height: 1.2em;">&nbsp;</p>
+        <!-- Reviews will be loaded here dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <img src="resources/logo-footer.png" alt="Footer Logo" class="footer-logo">
+        <p class="tagline">Nơi sáng tạo những gì bạn muốn</p>
+        <p class="support"><strong>Chăm sóc khách hàng</strong><br>official.yours.fashiondesign@gmail.com</p>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/profile.php?id=61576837198946" target="_blank" rel="noopener noreferrer">
+            <img src="resources/facebook-footer.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/instagram-footer.png" alt="Instagram">
+          </a>
+          <a href="https://www.tiktok.com/@yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/tiktok-footer.png" alt="TikTok">
+          </a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h4>YOURS</h4>
+        <ul>
+          <li><a href="about.html">Về chúng tôi</a></li>
+          <li><a href="all-products.html">Sản phẩm</a></li>
+          <li><a href="#">Câu hỏi thường gặp</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Chính sách & hỗ trợ</h4>
+        <ul>
+          <li><a href="#">Chính sách bảo mật và quyền riêng tư</a></li>
+          <li><a href="#">Điều khoản và điều kiện</a></li>
+          <li><a href="#">Chính sách vận chuyển và giao nhận</a></li>
+          <li><a href="#">Quy định và hình thức thanh toán</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Phương thức thanh toán</h4>
+        <div class="payment-methods">
+          <img src="resources/payos.png" alt="payos">
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Bản quyền © 2025 | Bảo lưu mọi quyền | <a href="#">Điều khoản và Điều kiện</a> | <a href="#">Chính sách bảo mật</a></p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="javascript/product.js"></script>
+    <script src="javascript/homepage.js"></script>
+  
+
+  <!-- Review Modal -->
+  <div id="reviewModal" class="review-modal">
+    <div class="review-modal-content">
+      <div class="review-modal-header">
+        <h3>Đánh Giá Sản Phẩm</h3>
+        <span class="close-review-modal" onclick="closeReviewModal()">&times;</span>
+      </div>
+      <div class="review-modal-body">
+        <div class="review-user-info">
+          <img id="userAvatar" src="resources/user-circle.png" alt="User Avatar" class="review-avatar">
+          <span id="userName">User</span>
+        </div>
+        
+        <form id="reviewForm" class="review-form">
+          <div class="review-section">
+            <label class="review-label">Đánh giá tổng quan:</label>
+            <div class="star-rating">
+              <i class="fas fa-star" data-value="1"></i>
+              <i class="fas fa-star" data-value="2"></i>
+              <i class="fas fa-star" data-value="3"></i>
+              <i class="fas fa-star" data-value="4"></i>
+              <i class="fas fa-star" data-value="5"></i>
+            </div>
+          </div>
+
+          <div class="review-section">
+            <label class="review-label">Màu sắc:</label>
+            <select id="color" class="review-input" required>
+              <option value="">Chọn màu sắc</option>
+              <option value="Đúng như mô tả">Đúng như mô tả</option>
+              <option value="Sáng hơn mô tả">Sáng hơn mô tả</option>
+              <option value="Tối hơn mô tả">Tối hơn mô tả</option>
+              <option value="Khác biệt nhiều">Khác biệt nhiều</option>
+            </select>
+          </div>
+
+          <div class="review-section">
+            <label class="review-label">Kích thước:</label>
+            <select id="size" class="review-input" required>
+              <option value="">Chọn kích thước</option>
+              <option value="Vừa vặn">Vừa vặn</option>
+              <option value="Rộng hơn">Rộng hơn</option>
+              <option value="Chật hơn">Chật hơn</option>
+              <option value="Dài hơn">Dài hơn</option>
+              <option value="Ngắn hơn">Ngắn hơn</option>
+            </select>
+          </div>
+
+          <div class="review-section">
+            <label class="review-label">Chất liệu:</label>
+            <select id="material" class="review-input" required>
+              <option value="">Chọn chất liệu</option>
+              <option value="Mềm mại, thoải mái">Mềm mại, thoải mái</option>
+              <option value="Cứng, không thoải mái">Cứng, không thoải mái</option>
+              <option value="Chất lượng tốt">Chất lượng tốt</option>
+              <option value="Chất lượng thấp">Chất lượng thấp</option>
+              <option value="Như mong đợi">Như mong đợi</option>
+            </select>
+          </div>
+
+          <div class="review-section">
+            <label class="review-label">Mô tả sản phẩm:</label>
+            <select id="descriptionMatch" class="review-input" required>
+              <option value="">Chọn mức độ phù hợp</option>
+              <option value="Đúng như mô tả">Đúng như mô tả</option>
+              <option value="Gần giống mô tả">Gần giống mô tả</option>
+              <option value="Khác biệt với mô tả">Khác biệt với mô tả</option>
+              <option value="Không giống mô tả">Không giống mô tả</option>
+            </select>
+          </div>
+
+          <div class="review-section">
+            <label class="review-label">Nhận xét chi tiết:</label>
+            <textarea id="feedback" class="review-textarea" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required></textarea>
+          </div>
+
+          <div class="review-actions">
+            <button type="button" class="review-cancel-btn" onclick="closeReviewModal()">Hủy</button>
+            <button type="submit" class="review-submit-btn">Gửi đánh giá</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thank You Popup Modal -->
+  <div id="thankYouModal" class="thank-you-modal">
+    <div class="thank-you-modal-content">
+      <div class="thank-you-icon">
+        <i class="fas fa-heart"></i>
+      </div>
+      <h2>Cảm ơn bạn!</h2>
+      <p>Đánh giá của bạn đã được gửi thành công.</p>
+      <p>Chúng tôi rất trân trọng ý kiến đóng góp của bạn!</p>
+      <button class="thank-you-close-btn" onclick="closeThankYouModal()">Đóng</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Replace modal with a simple overlay image and close button -->
+  <div id="sizeGuideOverlay" class="size-guide-overlay" style="display:none; position:fixed; z-index:10001; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); text-align:center;">
+    <span onclick="closeSizeGuideOverlay()" style="position:absolute; top:32px; right:48px; font-size:3rem; color:#fff; cursor:pointer; z-index:2; text-shadow:0 2px 8px #000;">&times;</span>
+    <img src="resources/size.png" alt="Bảng size" style="max-width:90vw; max-height:90vh; margin-top:5vh; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.18); display:inline-block; background:transparent;">
+  </div>
+
+  <!-- Add-to-Cart Modal (Login Required) -->
+<div id="addToCartModal" class="custom-modal" style="display:none;">
+  <div class="custom-modal-content">
+    <h2 class="custom-modal-title">Bạn cần đăng nhập để thêm vào giỏ hàng</h2>
+    <p class="custom-modal-message">Vui lòng đăng nhập hoặc đăng ký tài khoản để sử dụng tính năng giỏ hàng.</p>
+    <div class="custom-modal-actions">
+      <button class="custom-modal-btn primary" id="loginSignupBtn">Đăng nhập / Đăng ký</button>
+      <button class="custom-modal-btn secondary" id="closeModalBtn">Để sau</button>
+    </div>
+  </div>
+</div>
+<style>
+.custom-modal {
+  position: fixed;
+  z-index: 10010;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+  animation: modalOverlayFadeIn 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes modalOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.custom-modal-content {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(90,34,212,0.18);
+  padding: 38px 36px 32px 36px;
+  max-width: 400px;
+  width: 90vw;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: modalContentPopIn 0.38s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+@keyframes modalContentPopIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.custom-modal-title {
+  color: #7B3FF2;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  font-family: 'Montserrat', sans-serif;
+}
+.custom-modal-message {
+  color: #7B3FF2;
+  font-size: 1.18rem;
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+.custom-modal-actions {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+.custom-modal-btn {
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.custom-modal-btn.primary {
+  background: #7B3FF2;
+  color: #fff;
+}
+.custom-modal-btn.primary:hover {
+  background: #5B22D4;
+}
+.custom-modal-btn.secondary {
+  background: #f5f0ff;
+  color: #7B3FF2;
+}
+.custom-modal-btn.secondary:hover {
+  background: #e6dbff;
+}
+@media (max-width: 500px) {
+  .custom-modal-content { padding: 24px 8px 18px 8px; }
+  .custom-modal-title { font-size: 1.2rem; }
+  .custom-modal-message { font-size: 1rem; }
+  .custom-modal-btn { font-size: 1rem; padding: 10px 16px; }
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const addToCartBtn = document.querySelector('.add-to-cart');
+  const buyNowBtn = document.querySelector('.buy-now');
+  const designBtn = document.querySelector('button[onclick*="activateTab(\'design\')"]');
+  const modal = document.getElementById('addToCartModal');
+  const loginBtn = document.getElementById('loginSignupBtn');
+  const closeBtn = document.getElementById('closeModalBtn');
+  const modalTitle = document.querySelector('.custom-modal-title');
+  const modalMsg = document.querySelector('.custom-modal-message');
+  let lastAction = '';
+  function showLoginModalIfNotLoggedIn(e) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      e.preventDefault();
+      if (e.target === buyNowBtn) {
+        modalTitle.textContent = 'Bạn cần đăng nhập để mua ngay';
+        modalMsg.textContent = 'Vui lòng đăng nhập hoặc đăng ký tài khoản để sử dụng tính năng mua ngay.';
+        lastAction = 'buy-now';
+      } else if (e.target === designBtn) {
+        modalTitle.textContent = 'Bạn cần đăng nhập để sử dụng tính năng thiết kế';
+        modalMsg.textContent = 'Vui lòng đăng nhập hoặc đăng ký tài khoản để bắt đầu thiết kế sản phẩm của riêng bạn.';
+        lastAction = 'design';
+      } else {
+        modalTitle.textContent = 'Bạn cần đăng nhập để thêm vào giỏ hàng';
+        modalMsg.textContent = 'Vui lòng đăng nhập hoặc đăng ký tài khoản để sử dụng tính năng giỏ hàng.';
+        lastAction = 'add-to-cart';
+      }
+      modal.style.display = 'flex';
+    }
+    // else: proceed with add to cart, buy now, or design logic
+  }
+  if (addToCartBtn && modal && loginBtn && closeBtn) {
+    addToCartBtn.addEventListener('click', showLoginModalIfNotLoggedIn);
+  }
+  if (buyNowBtn && modal && loginBtn && closeBtn) {
+    buyNowBtn.addEventListener('click', showLoginModalIfNotLoggedIn);
+  }
+  if (designBtn && modal && loginBtn && closeBtn) {
+    designBtn.addEventListener('click', showLoginModalIfNotLoggedIn);
+  }
+  if (loginBtn) {
+    loginBtn.onclick = function() {
+      window.location.href = 'choose-login.html';
+    };
+  }
+  if (closeBtn) {
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    };
+  }
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  }
+});
+</script>
+  <style>
+  body {
+    margin: 0;
+  }
+  .avatar-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    vertical-align: middle;
+    background: #f3eaff;
+    border: 1.5px solid #eee;
+  }
+
+  /* Thank You Modal Styles */
+  .thank-you-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .thank-you-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .thank-you-modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .thank-you-icon {
+    font-size: 60px;
+    color: #e91e63;
+    margin-bottom: 20px;
+    animation: heartBeat 1s ease-in-out;
+  }
+
+  .thank-you-modal h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 28px;
+  }
+
+  .thank-you-modal p {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .thank-you-close-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .thank-you-close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from { 
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Toast styles */
+  .toast {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+    background: #7B3FF2;
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    box-shadow: 0 4px 24px rgba(123,63,242,0.15);
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s, bottom 0.3s;
+    pointer-events: none;
+  }
+  .toast.show {
+    display: block;
+    opacity: 1;
+    bottom: 60px;
+    pointer-events: auto;
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-60px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide-in-left {
+    opacity: 0;
+    animation: slideInLeft 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+  }
+  .slide-in-right {
+    opacity: 0;
+    animation: slideInRight 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+  }
+  .slide-in-up {
+    opacity: 0;
+    animation: slideInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+  }
+</style>
+
+  <script src="javascript/homepage.js"></script>
+  <script src="javascript/designer-products.js"></script>
+  <script>
+  // Hide 'Cửa hàng của tôi' for non-designers
+  (function() {
+    function getRoleFromToken() {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.role;
+      } catch (e) { return null; }
+    }
+    if (getRoleFromToken() !== 'designer') {
+      var storeMenu = document.getElementById('designerStoreMenu');
+      if (storeMenu) storeMenu.style.display = 'none';
+    }
+  })();
+  </script>
+  <script>
+  // Swap CTA button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const ctaBtn = document.getElementById('main-cta-btn');
+    const ctaText = document.getElementById('main-cta-text');
+    if (!token && ctaBtn && ctaText) {
+      ctaBtn.href = 'choose-login.html';
+      ctaText.textContent = 'Đăng ký ngay';
+    } else if (ctaBtn && ctaText) {
+      ctaBtn.href = 'design.html';
+      ctaText.textContent = 'Thiết Kế Ngay';
+    }
+  })();
+  </script>
+  <script>
+  // Swap account button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const accountBtn = document.getElementById('accountBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    if (!token && accountBtn) {
+      // Replace button with a link
+      const link = document.createElement('a');
+      link.href = 'choose-login.html';
+      link.className = 'user-btn';
+      link.textContent = 'Tài Khoản';
+      accountBtn.parentNode.replaceChild(link, accountBtn);
+      if (userDropdown) userDropdown.style.display = 'none';
+    }
+  })();
+  </script>
+  <script>
+function activateTab(tabName) {
+  if (tabName === 'home') {
+    window.location.replace('index.html');
+  } else if (tabName === 'design') {
+    // Existing design logic (if any) can go here
+    // For now, do nothing or show modal if not logged in
+  }
+}
+</script>
+  </body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test PayOS Checkout</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { background: #8A4AF3; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #7B3FF2; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+        .error { background: #ffe6e6; color: #d32f2f; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>🧪 PayOS Checkout Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Simple PayOS Order</h3>
+        <button onclick="testSimpleOrder()">Test Simple Order</button>
+        <div id="result1" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Full Checkout Data</h3>
+        <button onclick="testFullCheckout()">Test Full Checkout</button>
+        <div id="result2" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Check Environment Variables</h3>
+        <button onclick="checkEnvVars()">Check Environment</button>
+        <div id="result3" class="result"></div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        async function testSimpleOrder() {
+            try {
+                const response = await fetch('/api/create-payos-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: 100000,
+                        description: 'Test order from checkout',
+                        returnUrl: window.location.origin + '/payment-success.html',
+                        orderCode: Date.now(),
+                        customer: { name: 'Test User', email: 'test@example.com' },
+                        items: []
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.payUrl) {
+                    showResult('result1', `✅ Success! PayOS URL: ${data.payUrl}`);
+                    // Open PayOS URL in new window
+                    window.open(data.payUrl, '_blank');
+                } else {
+                    showResult('result1', `❌ Error: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('result1', `❌ Network Error: ${error.message}`, true);
+            }
+        }
+
+        async function testFullCheckout() {
+            try {
+                const payload = {
+                    amount: 150000,
+                    productTotal: 125000,
+                    shippingFee: 25000,
+                    description: 'Thanh toán đơn hàng YOURS',
+                    returnUrl: window.location.origin + '/payment-success.html',
+                    orderCode: Date.now(),
+                    customer: {
+                        email: 'test@example.com',
+                        username: 'testuser',
+                        name: 'Test User',
+                        address: '123 Test Street',
+                        phone: '0123456789'
+                    },
+                    items: [
+                        {
+                            name: 'Test Product',
+                            price: 125000,
+                            quantity: 1,
+                            size: 'M',
+                            productId: 'test123',
+                            image: 'test.jpg',
+                            description: 'Test product description'
+                        }
+                    ]
+                };
+
+                const response = await fetch('/api/create-payos-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.payUrl) {
+                    showResult('result2', `✅ Success! PayOS URL: ${data.payUrl}`);
+                    window.open(data.payUrl, '_blank');
+                } else {
+                    showResult('result2', `❌ Error: ${JSON.stringify(data)}`, true);
+                }
+            } catch (error) {
+                showResult('result2', `❌ Network Error: ${error.message}`, true);
+            }
+        }
+
+        async function checkEnvVars() {
+            try {
+                const response = await fetch('/api/create-payos-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: 100000,
+                        description: 'Environment test',
+                        returnUrl: window.location.origin + '/payment-success.html'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.status === 500 && data.error && data.error.includes('configuration')) {
+                    showResult('result3', `❌ Environment Error: ${data.error}`, true);
+                } else if (response.ok) {
+                    showResult('result3', '✅ Environment variables are working correctly');
+                } else {
+                    showResult('result3', `⚠️ Response: ${JSON.stringify(data)}`);
+                }
+            } catch (error) {
+                showResult('result3', `❌ Network Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html> 

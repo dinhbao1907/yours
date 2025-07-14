@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán - YOURS</title>
+  <link rel="stylesheet" href="css/homepage.css">
+  <link rel="stylesheet" href="css/product.css">
+  <link rel="icon" type="image/x-icon" href="resources/web-logo.ico">
+  <style>
+    .checkout-container.line-format {
+      max-width: 600px;
+      margin: 48px auto 80px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 2px 16px rgba(90,34,212,0.07);
+      padding: 0 0 24px 0;
+    }
+    .checkout-section {
+      padding: 32px 36px 0 36px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .checkout-divider {
+      border: none;
+      border-bottom: 2px solid #f0eafd;
+      margin: 0 36px;
+    }
+    .checkout-step-title {
+      color: #7B3FF2;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checkout-step-title span {
+      background: #7B3FF2;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .checkout-form input, .checkout-form select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #8A4AF3;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      font-size: 1rem;
+      outline: none;
+      color: #23222a;
+      background: #fff;
+    }
+    .checkout-form label {
+      font-weight: 600;
+      color: #8A4AF3;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .checkout-radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .checkout-radio {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      color: #23222a;
+      margin-bottom: 6px;
+    }
+    .checkout-radio input[type="radio"] {
+      accent-color: #8A4AF3;
+      width: 18px;
+      height: 18px;
+    }
+    .checkout-summary-product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .checkout-summary-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #f6f6fa;
+    }
+    .checkout-summary-info {
+      flex: 1;
+    }
+    .checkout-summary-title {
+      font-weight: 700;
+      color: #23222a;
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+    .checkout-summary-qty {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .checkout-summary-qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 2px solid #C5ED51;
+      background: #fff;
+      color: #8A4AF3;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .checkout-summary-qty-btn:hover {
+      background: #C5ED51;
+      color: #23222a;
+    }
+    .checkout-summary-qty-input {
+      width: 32px;
+      height: 32px;
+      text-align: center;
+      border: 2px solid #C5ED51;
+      border-radius: 8px;
+      font-size: 1rem;
+      color: #23222a;
+      background: #fff;
+      font-weight: 600;
+    }
+    .checkout-summary-price {
+      color: #8A4AF3;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-left: 8px;
+    }
+    .checkout-summary-details {
+      margin-top: 18px;
+      font-size: 0.98rem;
+      color: #23222a;
+      background: #f6f6fa;
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+    .checkout-summary-details-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .checkout-summary-details-row.total {
+      font-weight: 700;
+      color: #8A4AF3;
+      font-size: 1.1rem;
+    }
+    .checkout-btn {
+      width: 100%;
+      background: #8A4AF3;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .checkout-btn:hover {
+      background: #C5ED51;
+      color: #23222a;
+    }
+    @media (max-width: 900px) {
+      .checkout-container.line-format { max-width: 100%; border-radius: 0; box-shadow: none; }
+      .checkout-section { padding: 18px 8px 0 8px; }
+      .checkout-divider { margin: 0 8px; }
+    }
+    .product-info-form-outer {
+      margin-bottom: 18px;
+    }
+    .shipping-info-col {
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 4px 24px rgba(90,34,212,0.10);
+      padding: 40px 36px 36px 36px;
+    }
+    .shipping-form {
+      width: auto;
+      display: block;
+      margin: 0;
+    }
+    .shipping-form label {
+      font-weight: 700;
+      color: #7B3FF2;
+      font-size: 1.1rem;
+      margin-bottom: 2px;
+      margin-top: 8px;
+    }
+    .shipping-form input {
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 18px;
+      background: #f6f6fa;
+      font-size: 1.05rem;
+      color: #23222a;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(90,34,212,0.04);
+      font-weight: 600;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .shipping-form input:focus {
+      border: 2px solid #7B3FF2;
+      box-shadow: 0 2px 12px rgba(123,63,242,0.08);
+    }
+    .combined-methods-col {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      justify-content: flex-start;
+    }
+    .checkout-method-box {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 4px 24px rgba(90,34,212,0.10);
+      padding: 32px 32px 24px 32px;
+      margin-bottom: 0;
+    }
+    .checkout-method-box .checkout-step-title {
+      font-size: 1.25rem;
+      margin-bottom: 18px;
+      color: #7B3FF2;
+    }
+    .custom-radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .custom-radio {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #23222a;
+      margin-bottom: 0;
+      position: relative;
+      padding: 10px 0;
+    }
+    .custom-radio input[type="radio"] {
+      display: none;
+    }
+    .custom-radio-indicator {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #7B3FF2;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      margin-right: 4px;
+      background: #fff;
+      transition: border 0.2s;
+    }
+    .custom-radio input[type="radio"]:checked + .custom-radio-indicator {
+      border: 8px solid #7B3FF2;
+      background: #fff;
+    }
+    .custom-radio-label {
+      flex: 1;
+      font-weight: 700;
+      color: #23222a;
+    }
+    .custom-radio-price {
+      color: #7B3FF2;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-left: auto;
+    }
+    .custom-divider {
+      height: 2px;
+      background: #eee;
+      margin: 0 0 0 32px;
+      border-radius: 2px;
+      width: calc(100% - 32px);
+    }
+    .payment-methods {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .payment-methods img {
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .payment-methods img[alt="Zalopay"],
+    .payment-methods img[alt="PayOS"] {
+      min-width: 80px;
+    }
+    .checkout-summary-size {
+      margin-top: 6px;
+      font-weight: bold;
+      color: #C5ED51;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+    }
+    .avatar-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 8px;
+      vertical-align: middle;
+      background: #f3eaff;
+      border: 1.5px solid #eee;
+    }
+    /* --- HEADER BUTTONS: Override to match homepage header --- */
+    .user-btn, .user-menu .user-btn {
+      background: #fff !important;
+      border: 2px solid #6a0dad !important;
+      border-radius: 25px !important;
+      padding: 8px 24px !important;
+      font-size: 18px !important;
+      font-weight: bold !important;
+      color: #6a0dad !important;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+      outline: none;
+      box-shadow: none;
+      margin: 0 8px !important;
+      letter-spacing: 0.2px;
+    }
+    .user-btn:hover, .user-menu .user-btn:hover, .user-btn:focus {
+      background: #f6f2ff !important;
+      color: #6a0dad !important;
+      box-shadow: 0 2px 8px rgba(106,13,173,0.08);
+    }
+    .user-menu .user-btn:after {
+      content: '\25BC';
+      font-size: 1em;
+      margin-left: 8px;
+      color: #6a0dad;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (same as homepage) -->
+  <header class="header">
+    <div class="logo">
+      <img src="resources/logo.png" alt="YOURS Logo" class="logo">
+    </div>
+    <nav class="nav">
+      <ul>
+        <li><button type="button" class="user-btn" onclick="activateTab('home')">Trang chủ</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('all-products.html')">Sản phẩm</button></li>
+        <li><button type="button" class="user-btn" onclick="activateTab('design')">Thiết kế</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('about.html')">Về chúng tôi</button></li>
+      </ul>
+    </nav>
+    <div class="user-menu">
+      <button id="accountBtn" class="user-btn" onclick="toggleDropdown()">Tài Khoản</button>
+      <div id="userDropdown" class="dropdown">
+        <a href="user-profile.html" class="dropdown-item">Thông tin cá nhân</a>
+        <a href="designer-store.html" class="dropdown-item" id="designerStoreMenu">Cửa hàng của tôi</a>
+        <a href="cart.html" class="dropdown-item">Giỏ hàng</a>
+        <a href="choose-login.html" class="dropdown-item">Đăng xuất</a>
+      </div>
+    </div>
+  </header>
+  <div class="checkout-container line-format">
+    <!-- 1. Địa chỉ giao hàng -->
+    <section class="checkout-section">
+      <div class="checkout-step-title"><span>1</span> Địa chỉ giao hàng</div>
+      <form class="checkout-form shipping-form">
+        <label for="email">Địa chỉ Email</label>
+        <input type="email" id="email" placeholder="Chọn Email" required>
+        <label for="username">Tên đăng nhập (Username):</label>
+        <input type="text" id="username" name="username" placeholder="Tên đăng nhập" autocomplete="username" readonly style="margin-bottom: 14px; background:#f6f6fa; color:#888;">
+        <label for="name">Họ và tên:</label>
+        <input type="text" id="name" placeholder="Nhập tên khách hàng" required>
+        <label for="address">Địa chỉ giao hàng</label>
+        <input type="text" id="address" placeholder="Nhập địa chỉ giao hàng" required>
+        <label for="phone">Số điện thoại giao hàng</label>
+        <input type="tel" id="phone" placeholder="Nhập số điện thoại" required>
+      </form>
+    </section>
+    <hr class="checkout-divider">
+    <!-- 2. Phương thức vận chuyển -->
+    <section class="checkout-section">
+      <div class="checkout-step-title"><span>2</span> Phương thức vận chuyển</div>
+      <div class="custom-radio-group">
+        <label class="custom-radio">
+          <input type="radio" name="shipping" value="Nhanh" checked>
+          <span class="custom-radio-indicator"></span>
+          <span class="custom-radio-label">Nhanh</span>
+          <span class="custom-radio-price">25.000 VND</span>
+        </label>
+        <label class="custom-radio">
+          <input type="radio" name="shipping" value="Tiết kiệm">
+          <span class="custom-radio-indicator"></span>
+          <span class="custom-radio-label">Tiết kiệm</span>
+          <span class="custom-radio-price">15.000 VND</span>
+        </label>
+      </div>
+    </section>
+    <hr class="checkout-divider">
+    <!-- 3. Phương thức thanh toán -->
+    <section class="checkout-section">
+      <div class="checkout-step-title"><span>3</span> Phương thức thanh toán</div>
+      <div class="custom-radio-group">
+        <label class="custom-radio">
+          <input type="radio" name="payment" value="PayOS" checked>
+          <span class="custom-radio-indicator"></span>
+          <span class="custom-radio-label">PayOS</span>
+        </label>
+      </div>
+    </section>
+    <hr class="checkout-divider">
+    <!-- 4. Sản phẩm (Order summary) -->
+    <section class="checkout-section">
+      <div class="checkout-step-title"><span>4</span> Sản phẩm</div>
+      <div id="checkoutSummaryProducts"></div>
+      <div class="checkout-summary-details">
+        <div class="checkout-summary-details-row">
+          <span>Tổng tiền hàng</span>
+          <span id="summaryProductTotal">0 VND</span>
+        </div>
+        <div class="checkout-summary-details-row">
+          <span>Phí vận chuyển</span>
+          <span id="shippingFee">25.000 VND</span>
+        </div>
+        <div class="checkout-summary-details-row total">
+          <span>Tổng thanh toán</span>
+          <span id="totalPayment">0 VND</span>
+        </div>
+      </div>
+      <button class="checkout-btn" id="placeOrderBtn">Đặt hàng</button>
+    </section>
+  </div>
+  <!-- Footer (same as homepage) -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <img src="resources/logo-footer.png" alt="Footer Logo" class="footer-logo">
+        <p class="tagline">Nơi sáng tạo những gì bạn muốn</p>
+        <p class="support"><strong>Chăm sóc khách hàng</strong><br>official.yours.fashiondesign@gmail.com</p>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/profile.php?id=61576837198946" target="_blank" rel="noopener noreferrer">
+            <img src="resources/facebook-footer.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/instagram-footer.png" alt="Instagram">
+          </a>
+          <a href="https://www.tiktok.com/@yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/tiktok-footer.png" alt="TikTok">
+          </a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h4>YOURS</h4>
+        <ul>
+          <li><a href="about.html">Về chúng tôi</a></li>
+          <li><a href="all-products.html">Sản phẩm</a></li>
+          <li><a href="#">Câu hỏi thường gặp</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Chính sách & hỗ trợ</h4>
+        <ul>
+          <li><a href="#">Chính sách bảo mật và quyền riêng tư</a></li>
+          <li><a href="#">Điều khoản và điều kiện</a></li>
+          <li><a href="#">Chính sách vận chuyển và giao nhận</a></li>
+          <li><a href="#">Quy định và hình thức thanh toán</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Phương thức thanh toán</h4>
+        <div class="payment-methods">
+          <img src="resources/payos.png" alt="payos">
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Bản quyền © 2025 | Bảo lưu mọi quyền | <a href="#">Điều khoản và Điều kiện</a> | <a href="#">Chính sách bảo mật</a></p>
+    </div>
+  </footer>
+  
+  <!-- Validation Error Modal -->
+  <div id="validationModal" class="custom-modal" style="display:none;">
+    <div class="custom-modal-content">
+      <h2 class="custom-modal-title">Thông tin không đầy đủ</h2>
+      <p class="custom-modal-message" id="validationMessage">Vui lòng điền đầy đủ thông tin trước khi thanh toán.</p>
+      <div class="custom-modal-actions">
+        <button class="custom-modal-btn primary" id="closeValidationBtn">Đóng</button>
+      </div>
+    </div>
+  </div>
+  <!-- Payment Redirect Modal -->
+  <div id="redirectModal" class="custom-modal" style="display:none;">
+    <div class="custom-modal-content">
+      <h2 class="custom-modal-title" style="color:#7B3FF2;">Đang chuyển hướng đến trang thanh toán</h2>
+      <div class="custom-modal-message" style="font-size:1.15rem;">Vui lòng chờ trong giây lát...</div>
+    </div>
+  </div>
+  <!-- PayOS Payment Form Placeholder -->
+  <div id="payosFormContainer" style="display:none;max-width:600px;margin:40px auto 80px auto;"></div>
+  
+  <style>
+  .custom-modal {
+    position: fixed;
+    z-index: 10010;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.18);
+    display: flex; align-items: center; justify-content: center;
+    animation: modalOverlayFadeIn 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @keyframes modalOverlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .custom-modal-content {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(90,34,212,0.18);
+    padding: 38px 36px 32px 36px;
+    max-width: 450px;
+    width: 90vw;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.95);
+    animation: modalContentPopIn 0.38s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+  @keyframes modalContentPopIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .custom-modal-title {
+    color: #e53935;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 18px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .custom-modal-message {
+    color: #7B3FF2;
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .custom-modal-actions {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+  }
+  .custom-modal-btn {
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 12px 32px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .custom-modal-btn.primary {
+    background: #7B3FF2;
+    color: #fff;
+  }
+  .custom-modal-btn.primary:hover {
+    background: #5B22D4;
+  }
+  @media (max-width: 500px) {
+    .custom-modal-content { padding: 24px 8px 18px 8px; }
+    .custom-modal-title { font-size: 1.2rem; }
+    .custom-modal-message { font-size: 1rem; }
+    .custom-modal-btn { font-size: 1rem; padding: 10px 16px; }
+  }
+  </style>
+
+  <script src="javascript/homepage.js"></script>
+  <script src="javascript/designer-products.js"></script>
+  <script>
+    // Hide 'Cửa hàng của tôi' for non-designers
+    (function() {
+      function getRoleFromToken() {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload.role;
+        } catch (e) { return null; }
+      }
+      if (getRoleFromToken() !== 'designer') {
+        var storeMenu = document.getElementById('designerStoreMenu');
+        if (storeMenu) storeMenu.style.display = 'none';
+      }
+    })();
+  </script>
+  <script>
+  // Swap CTA button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const ctaBtn = document.getElementById('main-cta-btn');
+    const ctaText = document.getElementById('main-cta-text');
+    if (!token && ctaBtn && ctaText) {
+      ctaBtn.href = 'choose-login.html';
+      ctaText.textContent = 'Đăng ký ngay';
+    } else if (ctaBtn && ctaText) {
+      ctaBtn.href = 'design.html';
+      ctaText.textContent = 'Thiết Kế Ngay';
+    }
+  })();
+  </script>
+  <script>
+  // Swap account button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const accountBtn = document.getElementById('accountBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    if (!token && accountBtn) {
+      // Replace button with a link
+      const link = document.createElement('a');
+      link.href = 'choose-login.html';
+      link.className = 'user-btn';
+      link.textContent = 'Tài Khoản';
+      accountBtn.parentNode.replaceChild(link, accountBtn);
+      if (userDropdown) userDropdown.style.display = 'none';
+    }
+  })();
+  </script>
+  <script>
+    // Function to toggle dropdown
+    function toggleDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+      } else {
+        dropdown.classList.add('show');
+      }
+    }
+
+    // Function to activate tab (without login modal)
+    function activateTab(tabName) {
+      event.preventDefault(); // Prevent default button behavior
+      if (tabName === 'home') {
+        window.location.replace('index.html');
+      } else if (tabName === 'design') {
+        // Just redirect to design.html without login check
+        window.location.replace('design.html');
+      }
+    }
+
+    // Modal functions (kept for compatibility but not used)
+    function showLoginModal() {
+      const modal = document.getElementById('loginRequiredModal');
+      modal.style.display = 'block';
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginRequiredModal');
+      modal.style.display = 'none';
+    }
+
+    function goToLogin() {
+      window.location.href = 'choose-login.html';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('loginRequiredModal');
+      if (event.target === modal) {
+        closeLoginModal();
+      }
+    }
+
+    // Set active state based on current page
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPage = window.location.pathname.split('/').pop();
+      if (currentPage === 'checkout.html') {
+        const currentBtn = document.querySelector('button[onclick*="checkout.html"]');
+        if (currentBtn) currentBtn.classList.add('active');
+      }
+    });
+  </script>
+  <script>
+  // --- DYNAMIC CHECKOUT SUMMARY LOGIC ---
+  function getCartKey() {
+    const username = localStorage.getItem('currentUser');
+    return username ? `cart_${username}` : 'cart_guest';
+  }
+  function formatVND(num) {
+    return Number(num).toLocaleString('vi-VN') + ' VND';
+  }
+  function renderCheckoutSummary() {
+    const cartKey = getCartKey();
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    const checkedItems = cart.filter(item => item.checked);
+    const container = document.getElementById('checkoutSummaryProducts');
+    const productTotalElem = document.getElementById('summaryProductTotal');
+    const shippingFeeElem = document.getElementById('shippingFee');
+    const totalPaymentElem = document.getElementById('totalPayment');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const SHIPPING_FEE = getSelectedShippingFee();
+    if (!checkedItems.length) {
+      container.innerHTML = '<p style="text-align:center;color:#8A4AF3;font-size:1.1rem;margin:24px 0;">Không có sản phẩm nào được chọn để thanh toán.</p>';
+      productTotalElem.textContent = '0 VND';
+      shippingFeeElem.textContent = formatVND(SHIPPING_FEE);
+      totalPaymentElem.textContent = '0 VND';
+      placeOrderBtn.disabled = true;
+      return;
+    }
+    let productTotal = 0;
+    container.innerHTML = checkedItems.map(item => {
+      const price = parseInt(item.price || 0, 10);
+      const itemTotal = price * (item.quantity || 1);
+      productTotal += itemTotal;
+      return `
+        <div class="checkout-summary-product">
+          <img src="${item.image}" alt="${item.name}" class="checkout-summary-img">
+          <div class="checkout-summary-info">
+            <div class="checkout-summary-title">${item.name}</div>
+            <div class="checkout-summary-size">Size: ${item.size || ''}</div>
+            <div class="checkout-summary-qty">Số lượng: <span>${item.quantity || 1}</span></div>
+          </div>
+          <div class="checkout-summary-price">${formatVND(itemTotal)}</div>
+        </div>
+      `;
+    }).join('');
+    productTotalElem.textContent = formatVND(productTotal);
+    shippingFeeElem.textContent = formatVND(SHIPPING_FEE);
+    totalPaymentElem.textContent = formatVND(productTotal + SHIPPING_FEE);
+    placeOrderBtn.disabled = false;
+  }
+  function getSelectedShippingFee() {
+    const radios = document.getElementsByName('shipping');
+    for (let radio of radios) {
+      if (radio.checked) {
+        return radio.value === 'Nhanh' ? 25000 : 15000;
+      }
+    }
+    return 25000;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    renderCheckoutSummary();
+    // Update summary if shipping method changes
+    const shippingRadios = document.getElementsByName('shipping');
+    for (let radio of shippingRadios) {
+      radio.addEventListener('change', renderCheckoutSummary);
+    }
+    
+    // Populate username field
+    const usernameField = document.getElementById('username');
+    const currentUser = localStorage.getItem('currentUser');
+    if (usernameField && currentUser) {
+      usernameField.value = currentUser;
+    }
+    
+    // Add form validation for checkout button
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    if (placeOrderBtn) {
+      placeOrderBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get all required fields
+        const email = document.getElementById('email').value.trim();
+        const name = document.getElementById('name').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        
+        // Check if any field is empty
+        if (!email || !name || !address || !phone) {
+          const missingFields = [];
+          if (!email) missingFields.push('Địa chỉ Email');
+          if (!name) missingFields.push('Họ và tên');
+          if (!address) missingFields.push('Địa chỉ giao hàng');
+          if (!phone) missingFields.push('Số điện thoại');
+          
+          const validationMessage = document.getElementById('validationMessage');
+          validationMessage.textContent = `Vui lòng điền đầy đủ thông tin sau: ${missingFields.join(', ')}`;
+          
+          const modal = document.getElementById('validationModal');
+          modal.style.display = 'flex';
+          return;
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          const validationMessage = document.getElementById('validationMessage');
+          validationMessage.textContent = 'Vui lòng nhập địa chỉ email hợp lệ.';
+          
+          const modal = document.getElementById('validationModal');
+          modal.style.display = 'flex';
+          return;
+        }
+        
+        // Validate phone number (basic validation for Vietnamese numbers)
+        const phoneRegex = /^[0-9]{10,11}$/;
+        if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+          const validationMessage = document.getElementById('validationMessage');
+          validationMessage.textContent = 'Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số).';
+          
+          const modal = document.getElementById('validationModal');
+          modal.style.display = 'flex';
+          return;
+        }
+        
+        // If all validations pass, proceed with payment
+        const redirectModal = document.getElementById('redirectModal');
+        if (redirectModal) {
+          redirectModal.style.display = 'flex';
+        }
+        // Gather order info
+        const cartKey = (function() {
+          const username = localStorage.getItem('currentUser');
+          return username ? `cart_${username}` : 'cart_guest';
+        })();
+        let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+        const checkedItems = cart.filter(item => item.checked);
+        
+        console.log('🛒 Cart key:', cartKey);
+        console.log('🛒 Full cart:', cart);
+        console.log('🛒 Checked items:', checkedItems);
+        
+        if (checkedItems.length === 0) {
+          console.error('❌ No checked items in cart!');
+          showPayosError('Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng.');
+          return;
+        }
+        // Calculate totals
+        let productTotal = 0;
+        checkedItems.forEach(item => {
+          const price = parseInt(item.price || 0, 10);
+          productTotal += price * (item.quantity || 1);
+        });
+        const shippingFee = (function() {
+          const radios = document.getElementsByName('shipping');
+          for (let radio of radios) {
+            if (radio.checked) {
+              return radio.value === 'Nhanh' ? 25000 : 15000;
+            }
+          }
+          return 25000;
+        })();
+        const amount = productTotal + shippingFee;
+        // Generate a proper order code for PayOS (must be a number < 9007199254740991)
+        const timestamp = Date.now() % 1000000000; // Use last 9 digits of timestamp
+        const random = Math.floor(Math.random() * 10000); // 4 digit random number
+        const orderCode = timestamp * 10000 + random; // Combine to create unique number
+        // Collect customer info
+        const customer = {
+          email: document.getElementById('email').value.trim(),
+          username: document.getElementById('username').value.trim(),
+          name: document.getElementById('name').value.trim(),
+          address: document.getElementById('address').value.trim(),
+          phone: document.getElementById('phone').value.trim()
+        };
+        // Prepare payload
+        const payload = {
+          amount,
+          productTotal,
+          shippingFee,
+          description: 'Thanh toán đơn hàng YOURS',
+          returnUrl: window.location.origin + '/payment-success.html',
+          orderCode,
+          customer,
+          items: checkedItems.map(item => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            productId: item.designId || '',
+            image: item.image || '',
+            description: item.description || ''
+          }))
+        };
+        // Call backend to get PayOS URL
+        console.log('🚀 Sending PayOS request with payload:', payload);
+        
+        fetch('/api/create-payos-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => {
+          console.log('📡 PayOS response status:', res.status);
+          return res.json();
+        })
+        .then(data => {
+          console.log('📦 PayOS response data:', data);
+          if (redirectModal) redirectModal.style.display = 'none';
+          if (data.payUrl) {
+            console.log('✅ Redirecting to PayOS URL:', data.payUrl);
+            window.location.href = data.payUrl;
+          } else {
+            console.error('❌ No PayOS URL in response:', data);
+            showPayosError('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
+          }
+        })
+        .catch(err => {
+          if (redirectModal) redirectModal.style.display = 'none';
+          console.error('❌ PayOS error:', err);
+          
+          let errorMessage = 'Có lỗi khi kết nối đến máy chủ thanh toán. Vui lòng thử lại.';
+          
+          if (err.response && err.response.data) {
+            const errorData = err.response.data;
+            console.error('❌ PayOS API error response:', errorData);
+            if (errorData.error) {
+              errorMessage = `Lỗi thanh toán: ${errorData.error}`;
+            }
+            if (errorData.details) {
+              console.error('❌ PayOS error details:', errorData.details);
+            }
+          }
+          
+          showPayosError(errorMessage);
+        });
+
+        // Show error modal if needed
+        function showPayosError(msg) {
+          const validationMessage = document.getElementById('validationMessage');
+          validationMessage.textContent = msg;
+          const modal = document.getElementById('validationModal');
+          modal.style.display = 'flex';
+        }
+      });
+    }
+    
+    // Modal close functionality
+    const validationModal = document.getElementById('validationModal');
+    const closeValidationBtn = document.getElementById('closeValidationBtn');
+    
+    if (closeValidationBtn) {
+      closeValidationBtn.addEventListener('click', function() {
+        validationModal.style.display = 'none';
+      });
+    }
+    
+    if (validationModal) {
+      validationModal.addEventListener('click', function(e) {
+        if (e.target === validationModal) {
+          validationModal.style.display = 'none';
+        }
+      });
+    }
+  });
+  </script>

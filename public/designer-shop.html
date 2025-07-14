@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cửa hàng nhà thiết kế</title>
+  <link rel="stylesheet" href="css/homepage.css">
+  <link rel="stylesheet" href="css/product.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="resources/web-logo.ico">
+  <style>
+    .product-grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+    }
+    .product-card {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+      display: flex !important;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img src="resources/logo.png" alt="YOURS Logo" class="logo">
+    </div>
+    <nav class="nav">
+      <ul>
+        <li><button type="button" class="user-btn" onclick="activateTab('home')">Trang chủ</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('all-products.html')">Sản phẩm</button></li>
+        <li><button type="button" class="user-btn" onclick="activateTab('design')">Thiết kế</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('about.html')">Về chúng tôi</button></li>
+      </ul>
+    </nav>
+    <div class="user-menu">
+      <button id="accountBtn" class="user-btn" onclick="toggleDropdown()">Tài Khoản</button>
+      <div id="userDropdown" class="dropdown">
+        <a href="user-profile.html" class="dropdown-item">Thông tin cá nhân</a>
+        <a href="designer-store.html" class="dropdown-item" id="designerStoreMenu">Cửa hàng của tôi</a>
+        <a href="cart.html" class="dropdown-item">Giỏ hàng</a>
+        <a href="choose-login.html" class="dropdown-item">Đăng xuất</a>
+      </div>
+    </div>
+  </header>
+  <main style="max-width:1200px;margin:40px auto 0 auto;padding:0 16px;">
+    <a href="index.html" style="color:#7B3FF2;text-decoration:underline;font-weight:500;">&larr; Quay lại Trang chủ</a>
+    <section id="designerProfile" style="display:flex;align-items:center;gap:32px;margin:32px 0 24px 0;">
+      <img id="designerAvatar" src="resources/user-circle.png" alt="Avatar" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #eee;">
+      <div>
+        <h1 id="designerName" style="margin:0 0 8px 0;font-size:2rem;color:#7B3FF2;">Nhà thiết kế</h1>
+        <div id="designerBio" style="color:#555;font-size:1.1rem;">Đang tải thông tin...</div>
+      </div>
+    </section>
+    <h2 style="color:#4caf50;margin-bottom:18px;">Sản phẩm của nhà thiết kế</h2>
+    <div id="designerProducts" class="product-grid"></div>
+  </main>
+  
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <img src="resources/logo-footer.png" alt="Footer Logo" class="footer-logo">
+        <p class="tagline">Nơi sáng tạo những gì bạn muốn</p>
+        <p class="support"><strong>Chăm sóc khách hàng</strong><br>official.yours.fashiondesign@gmail.com</p>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/profile.php?id=61576837198946" target="_blank" rel="noopener noreferrer">
+            <img src="resources/facebook-footer.png" alt="Facebook">
+          </a>
+          <a href="https://www.instagram.com/yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/instagram-footer.png" alt="Instagram">
+          </a>
+          <a href="https://www.tiktok.com/@yours.fashiondesign" target="_blank" rel="noopener noreferrer">
+            <img src="resources/tiktok-footer.png" alt="TikTok">
+          </a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h4>YOURS</h4>
+        <ul>
+          <li><a href="about.html">Về chúng tôi</a></li>
+          <li><a href="all-products.html">Sản phẩm</a></li>
+          <li><a href="#">Câu hỏi thường gặp</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Chính sách & hỗ trợ</h4>
+        <ul>
+          <li><a href="#">Chính sách bảo mật và quyền riêng tư</a></li>
+          <li><a href="#">Điều khoản và điều kiện</a></li>
+          <li><a href="#">Chính sách vận chuyển và giao nhận</a></li>
+          <li><a href="#">Quy định và hình thức thanh toán</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Phương thức thanh toán</h4>
+        <div class="payment-methods">
+          <img src="resources/payos.png" alt="payos">
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Bản quyền © 2025 | Bảo lưu mọi quyền | <a href="#">Điều khoản và Điều kiện</a> | <a href="#">Chính sách bảo mật</a></p>
+    </div>
+  </footer>
+ 
+  <script src="javascript/homepage.js"></script>
+  <script src="javascript/designer-products.js"></script>
+  <!-- Loading Spinner Styles and Markup -->
+  <style>
+  .loading-spinner {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e0e0f7;
+    border-top: 5px solid #7B3FF2;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 24px auto;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+  <!-- Skeleton Loader Styles -->
+  <style>
+.skeleton-loader {
+  display: inline-block;
+  background: linear-gradient(90deg, #f3f3f3 25%, #ece9f7 50%, #f3f3f3 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.2s infinite linear;
+  border-radius: 8px;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+</style>
+  <style>
+/* Skeleton Loader ... (already present) */
+
+/* Entrance Animations */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-in-left {
+  opacity: 0;
+  animation: slideInLeft 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+}
+.slide-in-right {
+  opacity: 0;
+  animation: slideInRight 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+}
+.slide-in-up {
+  opacity: 0;
+  animation: slideInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+}
+</style>
+  <script>
+document.addEventListener('DOMContentLoaded', async function() {
+  // 1. Get username from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  const profileSection = document.getElementById('designerProfile');
+  const designerNameElem = document.getElementById('designerName');
+  const designerBioElem = document.getElementById('designerBio');
+  const designerAvatarElem = document.getElementById('designerAvatar');
+  const productsGrid = document.getElementById('designerProducts');
+
+  if (!username) {
+    designerNameElem.textContent = 'Không tìm thấy nhà thiết kế';
+    designerBioElem.textContent = 'Không có thông tin.';
+    productsGrid.innerHTML = '<p>Không tìm thấy sản phẩm nào.</p>';
+    return;
+  }
+
+  // Show skeleton loaders for designer info
+  designerNameElem.className = 'skeleton-loader';
+  designerNameElem.style.display = 'inline-block';
+  designerNameElem.style.width = '180px';
+  designerNameElem.style.height = '2.2em';
+  designerNameElem.textContent = '\u00A0';
+  designerBioElem.className = 'skeleton-loader';
+  designerBioElem.style.display = 'block';
+  designerBioElem.style.width = '220px';
+  designerBioElem.style.height = '1.2em';
+  designerBioElem.textContent = '\u00A0';
+  // Remove animation classes if present
+  designerAvatarElem.classList.remove('slide-in-left');
+  designerNameElem.classList.remove('slide-in-left');
+  designerBioElem.classList.remove('slide-in-right');
+
+  // 2. Try to fetch designer info
+  let designerInfoLoaded = false;
+  try {
+    const res = await fetch('https://yours-fashion.vercel.app/api/users/' + encodeURIComponent(username));
+    if (!res.ok) throw new Error('Không tìm thấy nhà thiết kế');
+    const designer = await res.json();
+    designerNameElem.className = '';
+    designerNameElem.style = '';
+    designerNameElem.textContent = designer.name || designer.username || username;
+    designerBioElem.className = '';
+    designerBioElem.style = '';
+    designerBioElem.textContent = designer.bio || 'Nhà thiết kế tại YOURS';
+    if (designer.avatar) designerAvatarElem.src = designer.avatar;
+    // Add entrance animations
+    designerAvatarElem.classList.add('slide-in-left');
+    designerNameElem.classList.add('slide-in-left');
+    designerBioElem.classList.add('slide-in-right');
+    designerInfoLoaded = true;
+  } catch (e) {
+    // Will try to use product data as fallback below
+  }
+
+  // Show skeleton loaders for products grid
+  productsGrid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    productsGrid.innerHTML += `<div class='product-card'><div class='skeleton-loader' style='width:100%;height:180px;margin-bottom:12px;'></div><div class='skeleton-loader' style='width:70%;height:1.2em;margin-bottom:8px;'></div><div class='skeleton-loader' style='width:50%;height:1em;'></div></div>`;
+  }
+
+  try {
+    const res = await fetch('https://yours-fashion.vercel.app/api/designs');
+    const designs = await res.json();
+    const filtered = (Array.isArray(designs) ? designs : []).filter(d => d.username === username);
+    if (filtered.length > 0) {
+      productsGrid.innerHTML = filtered.map((design, idx) => `
+        <div class="product-card slide-in-up" style="animation-delay:${0.1 + idx * 0.08}s;cursor:pointer" onclick="window.location.href='products.html?designId=${encodeURIComponent(design.designId)}'">
+          <img src="${design.designImage && design.designImage.startsWith('data:image/') ? design.designImage : (design.productType && design.productType.toLowerCase().includes('hoodie') ? 'resources/hoodie-demo.png' : 'resources/tshirt-model.png')}" alt="${design.productType || 'Product'}">
+          <h3>${design.name || 'Tên thiết kế'}</h3>
+          <p>by <b>${design.username || 'Designer'}</b></p>
+          <p class="price">${design.price ? design.price.toLocaleString() : ''} VND</p>
+          <button class="btn btn-secondary" onclick="window.location.href='products.html?designId=${encodeURIComponent(design.designId)}'; event.stopPropagation();">Xem sản phẩm</button>
+        </div>
+      `).join('');
+      // Fallback: Use first product's info if designer info API failed
+      if (!designerInfoLoaded) {
+        const first = filtered[0];
+        designerNameElem.className = '';
+        designerNameElem.style = '';
+        designerNameElem.textContent = first.username || username;
+        designerBioElem.className = '';
+        designerBioElem.style = '';
+        designerBioElem.textContent = 'Nhà thiết kế tại YOURS.';
+        if (first.avatar) designerAvatarElem.src = first.avatar;
+        designerAvatarElem.classList.add('slide-in-left');
+        designerNameElem.classList.add('slide-in-left');
+        designerBioElem.classList.add('slide-in-right');
+      }
+    } else {
+      productsGrid.innerHTML = '<p>Nhà thiết kế này chưa có sản phẩm nào.</p>';
+      if (!designerInfoLoaded) {
+        designerNameElem.className = '';
+        designerNameElem.style = '';
+        designerNameElem.textContent = 'Không tìm thấy nhà thiết kế';
+        designerBioElem.className = '';
+        designerBioElem.style = '';
+        designerBioElem.textContent = 'Không có thông tin.';
+      }
+    }
+  } catch (e) {
+    productsGrid.innerHTML = '<p>Có lỗi xảy ra khi tải sản phẩm.</p>';
+    if (!designerInfoLoaded) {
+      designerNameElem.className = '';
+      designerNameElem.style = '';
+      designerNameElem.textContent = 'Không tìm thấy nhà thiết kế';
+      designerBioElem.className = '';
+      designerBioElem.style = '';
+      designerBioElem.textContent = 'Không có thông tin.';
+    }
+  }
+});
+</script>
+  <script src="javascript/designer-products.js"></script>
+<!-- Login Required Modal for Design Button -->
+<div id="addToCartModal" class="custom-modal" style="display:none;">
+  <div class="custom-modal-content">
+    <h2 class="custom-modal-title">Bạn cần đăng nhập để sử dụng tính năng thiết kế</h2>
+    <p class="custom-modal-message">Vui lòng đăng nhập hoặc đăng ký tài khoản để bắt đầu thiết kế sản phẩm của riêng bạn.</p>
+    <div class="custom-modal-actions">
+      <button class="custom-modal-btn primary" id="loginSignupBtn">Đăng nhập / Đăng ký</button>
+      <button class="custom-modal-btn secondary" id="closeModalBtn">Để sau</button>
+    </div>
+  </div>
+</div>
+<style>
+.custom-modal {
+  position: fixed;
+  z-index: 10010;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+  animation: modalOverlayFadeIn 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes modalOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.custom-modal-content {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(90,34,212,0.18);
+  padding: 38px 36px 32px 36px;
+  max-width: 400px;
+  width: 90vw;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: modalContentPopIn 0.38s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+@keyframes modalContentPopIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.custom-modal-title {
+  color: #7B3FF2;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  font-family: 'Montserrat', sans-serif;
+}
+.custom-modal-message {
+  color: #7B3FF2;
+  font-size: 1.18rem;
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+.custom-modal-actions {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+.custom-modal-btn {
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.custom-modal-btn.primary {
+  background: #7B3FF2;
+  color: #fff;
+}
+.custom-modal-btn.primary:hover {
+  background: #5B22D4;
+}
+.custom-modal-btn.secondary {
+  background: #f5f0ff;
+  color: #7B3FF2;
+}
+.custom-modal-btn.secondary:hover {
+  background: #e6dbff;
+}
+@media (max-width: 500px) {
+  .custom-modal-content { padding: 24px 8px 18px 8px; }
+  .custom-modal-title { font-size: 1.2rem; }
+  .custom-modal-message { font-size: 1rem; }
+  .custom-modal-btn { font-size: 1rem; padding: 10px 16px; }
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const designBtn = document.querySelector('button[onclick*="activateTab(\'design\')"]');
+  const modal = document.getElementById('addToCartModal');
+  const loginBtn = document.getElementById('loginSignupBtn');
+  const closeBtn = document.getElementById('closeModalBtn');
+  const modalTitle = document.querySelector('.custom-modal-title');
+  const modalMsg = document.querySelector('.custom-modal-message');
+  function showLoginModalIfNotLoggedIn(e) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      e.preventDefault();
+      modalTitle.textContent = 'Bạn cần đăng nhập để sử dụng tính năng thiết kế';
+      modalMsg.textContent = 'Vui lòng đăng nhập hoặc đăng ký tài khoản để bắt đầu thiết kế sản phẩm của riêng bạn.';
+      modal.style.display = 'flex';
+    }
+  }
+  if (designBtn && modal && loginBtn && closeBtn) {
+    designBtn.addEventListener('click', showLoginModalIfNotLoggedIn);
+  }
+  if (loginBtn) {
+    loginBtn.onclick = function() {
+      window.location.href = 'choose-login.html';
+    };
+  }
+  if (closeBtn) {
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    };
+  }
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  }
+});
+</script>
+<script>
+// Swap account button for unauthenticated users (same as index.html)
+(function() {
+  const token = localStorage.getItem('token');
+  const accountBtn = document.getElementById('accountBtn');
+  const userDropdown = document.getElementById('userDropdown');
+  if (!token && accountBtn) {
+    // Replace button with a link
+    const link = document.createElement('a');
+    link.href = 'choose-login.html';
+    link.className = 'user-btn';
+    link.textContent = 'Tài Khoản';
+    accountBtn.parentNode.replaceChild(link, accountBtn);
+    if (userDropdown) userDropdown.style.display = 'none';
+  }
+})();
+</script>

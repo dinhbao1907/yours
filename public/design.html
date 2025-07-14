@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thiết Kế - YOURS</title>
+  <link rel="stylesheet" href="css/homepage.css">
+  <link rel="stylesheet" href="css/design.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="resources/web-logo.ico">
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <div class="logo">
+      <img src="resources/logo.png" alt="YOURS Logo" class="logo">
+    </div>
+    <nav class="nav">
+      <ul>
+        <li><button type="button" class="user-btn" onclick="activateTab('home')">Trang chủ</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('all-products.html')">Sản phẩm</button></li>
+        <li><button type="button" class="user-btn" onclick="activateTab('design')">Thiết kế</button></li>
+        <li><button type="button" class="user-btn" onclick="window.location.replace('about.html')">Về chúng tôi</button></li>
+      </ul>
+    </nav>
+    <div class="user-menu">
+      <button id="accountBtn" class="user-btn" onclick="toggleDropdown()">Tài Khoản</button>
+      <div id="userDropdown" class="dropdown">
+        <a href="user-profile.html" class="dropdown-item">Thông tin cá nhân</a>
+        <a href="designer-store.html" class="dropdown-item" id="designerStoreMenu">Cửa hàng của tôi</a>
+        <a href="cart.html" class="dropdown-item">Giỏ hàng</a>
+        <a href="choose-login.html" class="dropdown-item">Đăng xuất</a>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <h1 class="title">Thiết Kế</h1>
+    <div class="design-area">
+      <div class="left-panel">
+         <div class="design-option">
+          <button class="popup-btn" aria-expanded="false"><img src="resources/shirt-type.svg" alt="Color Icon" class="icon"> Loại áo</button>
+          <div class="mockup-options">
+             <img src="resources/tshirt-white.png" alt="T-shirt trắng" class="mockup-img" data-type="tshirt">
+          </div>
+        </div>
+        <div class="design-option">
+          <button class="popup-btn" aria-expanded="false"><img src="resources/color.svg" alt="Color Icon" class="icon"> Màu sắc</button>
+          <div class="color-options">
+            <div class="color-grid">
+              <div class="color" data-color="white"></div>
+              <div class="color" data-color="black"></div>
+              <div class="color" data-color="blue"></div>
+              <div class="color" data-color="green"></div>
+              <div class="color" data-color="yellow"></div>
+              <div class="color" data-color="pink"></div>
+            </div>
+          </div>
+        </div>
+        <div class="design-option">
+          <button id="addImageBtn" class="popup-btn"><img src="resources/inbox-in.svg" alt="Color Icon" class="icon"> Thêm ảnh</button>
+          <input type="file" class="file-input" accept="image/*">
+        </div>
+        <div class="design-option">
+          <button class="popup-btn" aria-expanded="false"><img src="resources/artifact.svg" alt="Color Icon" class="icon"> Họa tiết</button>
+          <div class="pattern-options">
+            <img src="resources/pattern1.png" alt="Pattern 1" class="pattern-img">
+            <img src="resources/pattern2.png" alt="Pattern 2" class="pattern-img">
+            <img src="resources/pattern3.png" alt="Pattern 3" class="pattern-img">
+            <img src="resources/pattern4.svg" alt="Pattern 4" class="pattern-img">
+            <img src="resources/pattern5.svg" alt="Pattern 5" class="pattern-img">
+            <img src="resources/pattern6.svg" alt="Pattern 6" class="pattern-img">
+            <img src="resources/pattern7.svg" alt="Pattern 7" class="pattern-img">
+            <img src="resources/pattern8.svg" alt="Pattern 8" class="pattern-img">
+            <img src="resources/pattern9.svg" alt="Pattern 9" class="pattern-img">
+            <img src="resources/pattern10.svg" alt="Pattern 10" class="pattern-img">
+          </div>
+        </div>
+      </div>
+           <div class="center-panel">
+        <div class="design-canvas">
+          <img src="resources/tshirt-white.png" alt="Product Image" class="product-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x400?text=No+Image';">
+          <!-- design elements will be added here -->
+        </div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" data-action="zoom-in">
+            <img src="resources/zoom-in.png" alt="Zoom In" class="icon"> Phóng to
+          </button>
+          <button class="zoom-btn" data-action="zoom-out">
+            <img src="resources/zoom-out.png" alt="Zoom Out" class="icon"> Thu nhỏ
+          </button>
+          <button class="zoom-btn" data-action="reset">
+            <img src="resources/reset.svg" alt="Reset" class="icon"> Reset
+          </button>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="action-buttons">
+          <button id="submitDesign" class="popup-btn"><img src="resources/new.svg" alt="Color Icon" class="icon"> <span id="mainActionBtnText">Đăng bài</span></button>
+          <button id="saveDraftBtn" class="popup-btn secondary"><img src="resources/save.svg" alt="Color Icon" class="icon"> Lưu nháp</button>
+          <button onclick="testCapture()" class="popup-btn" style="background: #ff6b6b; color: white; margin-top: 10px;">🧪 Test Capture</button>
+        </div>
+        <!-- Layer Panel for managing layers (now only in right-panel) -->
+        <div class="layer-panel">
+          <div class="layer-panel-title"><img src="resources/artifact.svg" class="icon" alt="Layers Icon"> Layers</div>
+          <ul class="layer-list" id="layerList">
+            <!-- Layers will be dynamically populated here -->
+          </ul>
+        </div>
+        
+        <!-- Size Input Panel -->
+        <div class="size-input-panel" id="sizeInputPanel" style="display:none;">
+          <div class="size-input-title">Kích thước</div>
+          <div class="size-inputs">
+            <input type="number" id="widthInput" placeholder="Rộng" min="30" max="400">
+            <span>×</span>
+            <input type="number" id="heightInput" placeholder="Cao" min="30" max="400">
+            <span>px</span>
+          </div>
+          <div class="size-button-container">
+            <button id="applySizeBtn">Áp dụng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+       
+    <div class="product-description">
+      <h2>Thông tin sản phẩm</h2>
+      <div class="description-form">
+        <!-- Designer fields -->
+        <div id="designerFields">
+          <div class="form-group" id="productNameGroup">
+            <label>Tên sản phẩm:</label>
+            <input type="text" id="productName" class="form-input" required>
+          </div>
+          <div class="form-group" id="productTypeGroup">
+            <label>Loại sản phẩm:</label>
+            <select id="productType" class="form-input" required>
+              <option value="Áo T-shirt">Áo T-shirt</option>
+            </select>
+          </div>
+          <div class="form-group" id="descriptionGroup">
+            <label>Mô tả:</label>
+            <input type="text" id="descriptionInput" class="form-input">
+          </div>
+          <div class="form-group" id="priceGroup">
+            <label>Giá bán:</label>
+            <input type="text" id="priceInput" class="form-input" value="">
+          </div>
+          <div class="form-group" id="productCodeGroup">
+            <label>Mã sản phẩm:</label>
+            <input type="text" id="productCode" class="form-input" readonly required>
+          </div>
+          <div class="form-group" id="materialGroup">
+            <label>Chất liệu:</label>
+            <input type="text" id="material" class="form-input" value="Vải Cotton" readonly>
+          </div>
+        </div>
+        <!-- Customer fields -->
+        <div id="customerFields">
+          <div class="form-group" id="sizeGroup">
+            <label>Size:</label>
+            <select id="sizeInput" class="form-input">
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+            </select>
+          </div>
+          <div class="form-group" id="notesGroup">
+            <label>Ghi chú:</label>
+            <input type="text" id="notesInput" class="form-input">
+          </div>
+          <div class="form-group" id="materialGroupCustomer">
+            <label>Chất liệu:</label>
+            <input type="text" id="materialCustomer" class="form-input" value="Vải Cotton" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+    </main>
+    
+    <div class="modal" id="successModal">
+  <div class="modal-content">
+    <h3>Thành công!</h3>
+    <p>Thiết kế của bạn đã được lưu thành công.</p>
+    <button onclick="document.getElementById('successModal').style.display='none'">Đóng</button>
+  </div>
+</div>
+
+<!-- Unsaved changes modal -->
+<div class="modal" id="unsavedModal">
+  <div class="modal-content">
+    <h3>Có vẻ như bạn chưa lưu thiết kế của mình</h3>
+    <div style="margin: 18px 0 24px 0; font-size: 16px; color: #6a0dad;">Bạn có muốn lưu thiết kế này vào nháp trước khi rời đi không?</div>
+    <button id="unsavedSaveBtn" style="background:#6a0dad;color:#fff;margin-right:12px;">Lưu thiết kế</button>
+    <button id="unsavedContinueBtn" style="background:#ede9fe;color:#7c3aed;">Tiếp tục</button>
+  </div>
+</div>
+
+<script src="javascript/design.js"></script>
+  <script src="javascript/homepage.js"></script>
+  <script src="javascript/designer-products.js"></script>
+  <script>
+  // Hide 'Cửa hàng của tôi' for non-designers
+(function() {
+  function getRoleFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role;
+    } catch (e) { return null; }
+  }
+    if (getRoleFromToken() !== 'designer') {
+      var storeMenu = document.getElementById('designerStoreMenu');
+      if (storeMenu) storeMenu.style.display = 'none';
+    }
+  })();
+  </script>
+  <script>
+  // Swap CTA button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const ctaBtn = document.getElementById('main-cta-btn');
+    const ctaText = document.getElementById('main-cta-text');
+    if (!token && ctaBtn && ctaText) {
+      ctaBtn.href = 'choose-login.html';
+      ctaText.textContent = 'Đăng ký ngay';
+    } else if (ctaBtn && ctaText) {
+      ctaBtn.href = 'design.html';
+      ctaText.textContent = 'Thiết Kế Ngay';
+  }
+})();
+</script>
+  <script>
+  // Swap account button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const accountBtn = document.getElementById('accountBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    if (!token && accountBtn) {
+      // Replace button with a link
+      const link = document.createElement('a');
+      link.href = 'choose-login.html';
+      link.className = 'user-btn';
+      link.textContent = 'Tài Khoản';
+      accountBtn.parentNode.replaceChild(link, accountBtn);
+      if (userDropdown) userDropdown.style.display = 'none';
+    }
+  })();
+  </script>
+
+
+  <!-- Login Required Popup Modal -->
+  <div id="loginRequiredModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Đăng nhập để tiếp tục</h2>
+        <span class="close" onclick="closeLoginModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="modal-icon">
+          <svg width="64" height="64" fill="none" stroke="#7B3FF2" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10,17 15,12 10,7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </div>
+        <p>Bạn cần đăng nhập hoặc đăng ký để sử dụng tính năng thiết kế.</p>
+        <p>Hãy tạo tài khoản để bắt đầu thiết kế sản phẩm của riêng bạn!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="goToLogin()">Đăng nhập / Đăng ký</button>
+        <button class="btn-secondary" onclick="closeLoginModal()">Để sau</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+       // Kiểm tra token khi trang tải
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'homepage-unauthenticated.html';
+      return;
+    }
+
+    // Gọi API để lấy thông tin người dùng
+    fetch('https://yours-fashion.vercel.app/api/user', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => {
+      if (!response.ok) {
+        console.log('API error - Status:', response.status, 'Message:', response.statusText);
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('API response:', data);
+      if (data.user && data.user.username) {
+        document.getElementById('username').textContent = data.user.username;
+      } else {
+        console.log('Username not found in response');
+        document.getElementById('username').textContent = 'Khách hàng';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching user:', error.message);
+      localStorage.removeItem('token');
+      window.location.href = 'homepage-unauthenticated.html';
+    });
+
+
+    // Đóng dropdown khi nhấp ra ngoài
+    document.addEventListener('click', function(event) {
+      const userBtn = document.querySelector('.user-btn');
+      const dropdown = document.getElementById('userDropdown');
+      if (!userBtn.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+      // Handle logout
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        localStorage.removeItem('userName');
+        alert('Đã đăng xuất thành công!');
+        window.location.href = 'index.html';
+      });
+  </script>
+  <script>
+    // Function to toggle dropdown
+    function toggleDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+      } else {
+        dropdown.classList.add('show');
+      }
+    }
+
+    // Function to activate tab
+    function activateTab(tabName) {
+      event.preventDefault(); // Prevent default button behavior
+      if (tabName === 'home') {
+        window.location.replace('index.html');
+      } else if (tabName === 'design') {
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showLoginModal();
+        } else {
+          window.location.replace('design.html');
+        }
+      } // 'products' and 'blog' do nothing
+    }
+
+    // Modal functions
+    function showLoginModal() {
+      const modal = document.getElementById('loginRequiredModal');
+      modal.style.display = 'block';
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginRequiredModal');
+      modal.style.display = 'none';
+    }
+
+    function goToLogin() {
+      window.location.href = 'choose-login.html';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('loginRequiredModal');
+      if (event.target === modal) {
+        closeLoginModal();
+      }
+    }
+
+    // Đặt trạng thái active mặc định dựa trên trang hiện tại
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPage = window.location.pathname.split('/').pop();
+      if (currentPage === 'index.html') {
+        const homeBtn = document.querySelector('button[onclick="activateTab(\'home\')"]');
+        if (homeBtn) homeBtn.classList.add('active');
+      }
+    });
+  </script>
+  <script src="javascript/homepage.js"></script>
+  <script src="javascript/designer-products.js"></script>
+  <script>
+  // Hide 'Cửa hàng của tôi' for non-designers
+  (function() {
+    function getRoleFromToken() {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.role;
+      } catch (e) { return null; }
+    }
+    if (getRoleFromToken() !== 'designer') {
+      var storeMenu = document.getElementById('designerStoreMenu');
+      if (storeMenu) storeMenu.style.display = 'none';
+    }
+  })();
+  </script>
+  <script>
+  // Swap CTA button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const ctaBtn = document.getElementById('main-cta-btn');
+    const ctaText = document.getElementById('main-cta-text');
+    if (!token && ctaBtn && ctaText) {
+      ctaBtn.href = 'choose-login.html';
+      ctaText.textContent = 'Đăng ký ngay';
+    } else if (ctaBtn && ctaText) {
+      ctaBtn.href = 'design.html';
+      ctaText.textContent = 'Thiết Kế Ngay';
+    }
+  })();
+  </script>
+  <script>
+  // Swap account button for unauthenticated users
+  (function() {
+    const token = localStorage.getItem('token');
+    const accountBtn = document.getElementById('accountBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    if (!token && accountBtn) {
+      // Replace button with a link
+      const link = document.createElement('a');
+      link.href = 'choose-login.html';
+      link.className = 'user-btn';
+      link.textContent = 'Tài Khoản';
+      accountBtn.parentNode.replaceChild(link, accountBtn);
+      if (userDropdown) userDropdown.style.display = 'none';
+    }
+  })();
+  </script>
+  </body>
+</html>
