@@ -1,3 +1,9 @@
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
 // Xử lý chọn vai trò
 const roleButtons = document.querySelectorAll('.role-btn');
 const roleInput = document.getElementById('role');
@@ -39,7 +45,7 @@ document.getElementById('forgot-password-form').addEventListener('submit', async
   }
 
   try {
-    const response = await fetch('https://yours-fashion.vercel.app/api/forgot-password', {
+    const response = await fetch(`${window.API_BASE_URL}/api/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, role }),
@@ -79,7 +85,7 @@ document.getElementById('reset-password-form').addEventListener('submit', async 
   }
 
   try {
-    const response = await fetch('https://yours-fashion.vercel.app/api/reset-password', {
+    const response = await fetch(`${window.API_BASE_URL}/api/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, role, code, newPassword }),

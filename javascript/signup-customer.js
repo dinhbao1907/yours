@@ -1,137 +1,138 @@
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
+// Spinner and notification CSS injection
+(function() {
+  if (!document.getElementById('spinner-style')) {
+    const style = document.createElement('style');
+    style.id = 'spinner-style';
+    style.textContent = `
+    .spinner-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(255,255,255,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center;
+      display: none;
+    }
+    .spinner {
+      border: 6px solid #eee; border-top: 6px solid #7B3FF2; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .notification-box {
+      position: fixed; top: 32px; left: 50%; transform: translateX(-50%); background: #e74c3c; color: #fff; padding: 14px 32px; border-radius: 8px; font-size: 1rem; font-weight: 500; z-index: 10001; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: none; animation: fadeIn 0.3s;
+    }
+    .notification-box.success { background: #4CAF50; }
+    @keyframes fadeIn { from { opacity: 0; top: 0; } to { opacity: 1; top: 32px; } }
+    `;
+    document.head.appendChild(style);
+  }
+  if (!document.getElementById('spinner-overlay')) {
+    const spinner = document.createElement('div');
+    spinner.id = 'spinner-overlay';
+    spinner.className = 'spinner-overlay';
+    spinner.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(spinner);
+  }
+})();
+
+function showSpinner(show) {
+  document.getElementById('spinner-overlay').style.display = show ? 'flex' : 'none';
+}
+function showNotification(message, type = 'error') {
+  let box = document.querySelector('.notification-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'notification-box';
+    document.body.appendChild(box);
+  }
+  box.textContent = message;
+  box.className = 'notification-box' + (type === 'success' ? ' success' : '');
+  box.style.display = 'block';
+  setTimeout(() => { box.style.display = 'none'; }, 2200);
+}
+
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-
+  showSpinner(true);
   const username = document.getElementById('username').value;
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   const confirmPassword = document.getElementById('confirm-password').value;
-
   try {
-    const response = await fetch('https://yours-fashion.vercel.app/api/signup-customer', {
+    const response = await fetch(`${window.API_BASE_URL}/api/signup-customer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password, confirmPassword }),
     });
-
     const data = await response.json();
-    
-    // Tạo và hiển thị notification box
+    showSpinner(false);
+    // Notification box logic remains as before
     const notificationBox = document.createElement('div');
     notificationBox.className = 'notification-box';
     notificationBox.textContent = data.message;
     document.body.appendChild(notificationBox);
     setTimeout(() => notificationBox.style.display = 'block', 10);
-
     if (response.status === 201) {
       let currentEmail = email;
-      console.log("Stored email for verification:", currentEmail); // Debug log
-
-      // Hiển thị modal xác thực
       document.getElementById('verificationModal').style.display = 'flex';
-      setTimeout(() => notificationBox.remove(), 1500); // Xóa box sau 1.5 giây
-
-      // Xử lý form xác thực
+      setTimeout(() => notificationBox.remove(), 1500);
       document.getElementById('verification-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-
         if (!currentEmail) {
-          const errorBox = document.createElement('div');
-          errorBox.className = 'notification-box';
-          errorBox.textContent = 'Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.';
-          document.body.appendChild(errorBox);
-          setTimeout(() => errorBox.style.display = 'block', 10);
-          setTimeout(() => errorBox.remove(), 1500);
+          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.');
           return;
         }
-
         const verificationCode = document.getElementById('verificationCode').value;
         const requestBody = { email: currentEmail, verificationCode };
-        console.log("Sending verification request with body:", requestBody); // Debug log
-
         try {
-          const response = await fetch('https://yours-fashion.vercel.app/api/verify-account', {
+          const response = await fetch(`${window.API_BASE_URL}/api/verify-account`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody),
           });
-
           const data = await response.json();
-          console.log("Verification response:", data); // Debug log
-
           const verifyBox = document.createElement('div');
           verifyBox.className = 'notification-box';
           verifyBox.textContent = data.message;
           document.body.appendChild(verifyBox);
           setTimeout(() => verifyBox.style.display = 'block', 10);
-
           if (response.status === 200) {
             setTimeout(() => {
               verifyBox.remove();
               document.getElementById('verificationModal').style.display = 'none';
-              window.location.href = 'signin-customer.html'; // Chuyển hướng sau khi xác thực
+              window.location.href = 'signin-customer.html';
             }, 1500);
           } else {
             setTimeout(() => verifyBox.remove(), 1500);
           }
         } catch (error) {
-          const errorBox = document.createElement('div');
-          errorBox.className = 'notification-box';
-          errorBox.textContent = 'Lỗi: ' + error.message;
-          document.body.appendChild(errorBox);
-          setTimeout(() => errorBox.style.display = 'block', 10);
-          setTimeout(() => errorBox.remove(), 1500);
+          showNotification('Lỗi: ' + error.message);
         }
       });
-
-      // Hàm gửi lại mã xác thực
       window.resendVerificationCode = async () => {
         if (!currentEmail) {
-          const errorBox = document.createElement('div');
-          errorBox.className = 'notification-box';
-          errorBox.textContent = 'Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.';
-          document.body.appendChild(errorBox);
-          setTimeout(() => errorBox.style.display = 'block', 10);
-          setTimeout(() => errorBox.remove(), 1500);
+          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.');
           return;
         }
-
         const requestBody = { email: currentEmail };
-        console.log("Resending verification code with body:", requestBody); // Debug log
-
         try {
-          const response = await fetch('https://yours-fashion.vercel.app/api/resend-verification', {
+          const response = await fetch(`${window.API_BASE_URL}/api/resend-verification`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody),
           });
-
           const data = await response.json();
-          console.log("Resend verification response:", data); // Debug log
-
-          const resendBox = document.createElement('div');
-          resendBox.className = 'notification-box';
-          resendBox.textContent = data.message;
-          document.body.appendChild(resendBox);
-          setTimeout(() => resendBox.style.display = 'block', 10);
-          setTimeout(() => resendBox.remove(), 1500);
+          showNotification(data.message, response.ok ? 'success' : 'error');
         } catch (error) {
-          const errorBox = document.createElement('div');
-          errorBox.className = 'notification-box';
-          errorBox.textContent = 'Lỗi: ' + error.message;
-          document.body.appendChild(errorBox);
-          setTimeout(() => errorBox.style.display = 'block', 10);
-          setTimeout(() => errorBox.remove(), 1500);
+          showNotification('Lỗi: ' + error.message);
         }
       };
     } else {
       setTimeout(() => notificationBox.remove(), 1500);
     }
   } catch (error) {
-    const errorBox = document.createElement('div');
-    errorBox.className = 'notification-box';
-    errorBox.textContent = 'Lỗi: ' + error.message;
-    document.body.appendChild(errorBox);
-    setTimeout(() => errorBox.style.display = 'block', 10);
-    setTimeout(() => errorBox.remove(), 1500);
+    showSpinner(false);
+    showNotification('Lỗi: ' + error.message);
   }
 });

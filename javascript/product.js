@@ -46,13 +46,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addToCartBtn = document.querySelector('.add-to-cart');
   if (addToCartBtn) {
     addToCartBtn.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent default form or button behavior
+      e.preventDefault();
       // Check if user is authenticated
       const token = localStorage.getItem('token');
+      if (!token) {
+        showLoginModal('Bạn cần đăng nhập hoặc đăng ký để sử dụng tính năng thêm sản phẩm vào giỏ hàng.');
+        return;
+      }
       // Check if size is selected
       const selectedSizeBtn = document.querySelector('.size-btn.selected');
       if (!selectedSizeBtn) {
-        // Show modal asking to choose size
+        // Show modal asking to choose size (for signed-in users only)
         const modal = document.getElementById('addToCartModal');
         const modalTitle = document.querySelector('.custom-modal-title');
         const modalMsg = document.querySelector('.custom-modal-message');
@@ -92,14 +96,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return;
       }
-      if (!token) {
-        showLoginModal('Bạn cần đăng nhập hoặc đăng ký để sử dụng tính năng thêm sản phẩm vào giỏ hàng.');
-        return; // Stop here for unauthenticated users
-      }
       // Get product info
       const productId = document.getElementById('productId')?.value || designId || '';
       const name = document.getElementById('productName').textContent;
-      const price = document.getElementById('productPrice').textContent.replace(/[^\d]/g, '');
+      const price = parseInt(document.getElementById('productPrice').textContent.replace(/[^\d]/g, ''), 10);
       const image = document.querySelector('.product-image img').src;
       const description = document.querySelector('.product-description p').textContent;
       const size = document.querySelector('.size-btn.selected')?.textContent || 'M';
@@ -130,10 +130,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
       // Check if user is authenticated
       const token = localStorage.getItem('token');
+      if (!token) {
+        showLoginModal('Bạn cần đăng nhập hoặc đăng ký để sử dụng tính năng mua sản phẩm.');
+        return;
+      }
       // Check if size is selected
       const selectedSizeBtn = document.querySelector('.size-btn.selected');
       if (!selectedSizeBtn) {
-        // Show modal asking to choose size
+        // Show modal asking to choose size (for signed-in users only)
         const modal = document.getElementById('addToCartModal');
         const modalTitle = document.querySelector('.custom-modal-title');
         const modalMsg = document.querySelector('.custom-modal-message');
@@ -173,14 +177,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return;
       }
-      if (!token) {
-        showLoginModal('Bạn cần đăng nhập hoặc đăng ký để sử dụng tính năng mua sản phẩm.');
-        return; // Stop here for unauthenticated users
-      }
       // Get product info
       const productId = document.getElementById('productId')?.value || designId || '';
       const name = document.getElementById('productName').textContent;
-      const price = document.getElementById('productPrice').textContent.replace(/[^\d]/g, '');
+      const price = parseInt(document.getElementById('productPrice').textContent.replace(/[^\d]/g, ''), 10);
       const image = document.querySelector('.product-image img').src;
       const description = document.querySelector('.product-description p').textContent;
       const size = document.querySelector('.size-btn.selected')?.textContent || 'M';
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const designId = urlParams.get('designId');
   if (designId) {
     try {
-      const response = await fetch('/api/designs');
+      const response = await fetch(`${window.API_BASE_URL}/api/designs`);
       const designs = await response.json();
       const design = designs.find(d => d.designId === designId);
       if (design) {
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             userLikes[design.designId] = true;
             localStorage.setItem('likedDesigns', JSON.stringify(userLikes));
             // Send like to backend
-            await fetch(`/api/designs/${design.designId}/like`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } });
+            await fetch(`${window.API_BASE_URL}/api/designs/${design.designId}/like`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } });
             document.getElementById('likeCount').textContent = (parseInt(document.getElementById('likeCount').textContent) + 1);
           } else {
             document.getElementById('likeHeart').classList.remove('liked');
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             delete userLikes[design.designId];
             localStorage.setItem('likedDesigns', JSON.stringify(userLikes));
             // Send unlike to backend
-            await fetch(`/api/designs/${design.designId}/unlike`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } });
+            await fetch(`${window.API_BASE_URL}/api/designs/${design.designId}/unlike`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } });
             document.getElementById('likeCount').textContent = Math.max(0, parseInt(document.getElementById('likeCount').textContent) - 1);
           }
         });
@@ -432,7 +432,7 @@ function openReviewModal() {
           if (avatar && avatar !== 'resources/user-circle.png') {
             reviewData.avatar = avatar;
           }
-          const response = await fetch('https://yours-fashion.vercel.app/api/reviews', {
+          const response = await fetch(`${window.API_BASE_URL}/api/reviews`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reviewData)
@@ -481,18 +481,19 @@ async function loadReviews(designId) {
     return;
   }
   reviewsList.innerHTML = '';
+  let reviews = [];
   try {
     console.log('Fetching reviews for designId:', designId);
-    const response = await fetch(`https://yours-fashion.vercel.app/api/reviews?designId=${encodeURIComponent(designId)}`);
+    const response = await fetch(`${window.API_BASE_URL}/api/reviews?designId=${encodeURIComponent(designId)}`);
     console.log('Reviews API response status:', response.status);
-    const reviews = await response.json();
+    reviews = await response.json();
     console.log('Reviews received:', reviews);
 
     // Fetch overall rating and count from backend
     let overallScore = 0;
     let reviewCount = 0;
     try {
-      const statsRes = await fetch(`https://yours-fashion.vercel.app/api/review-stats?designId=${encodeURIComponent(designId)}`);
+      const statsRes = await fetch(`${window.API_BASE_URL}/api/review-stats?designId=${encodeURIComponent(designId)}`);
       if (statsRes.ok) {
         const stats = await statsRes.json();
         overallScore = stats.average;
@@ -555,6 +556,33 @@ async function loadReviews(designId) {
   }
   const reviewsLoadingElem = document.getElementById('reviewsLoading');
   if (reviewsLoadingElem) reviewsLoadingElem.style.display = 'none';
+
+  // --- NEW LOGIC: Update review button based on user review status ---
+  const reviewBtn = document.querySelector('.customer-btn');
+  const currentUser = getUsernameFromToken() || localStorage.getItem('currentUser');
+  const userReview = Array.isArray(reviews) ? reviews.find(r => r.username === currentUser) : null;
+  if (reviewBtn) {
+    if (userReview) {
+      reviewBtn.textContent = 'Xem đánh giá';
+      reviewBtn.onclick = function() {
+        // Scroll to or highlight the user's review
+        const reviewsList = document.querySelector('.reviews-list');
+        if (reviewsList) {
+          const myReviewElem = Array.from(reviewsList.children).find(
+            el => el.querySelector('.review-username')?.textContent === currentUser
+          );
+          if (myReviewElem) {
+            myReviewElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            myReviewElem.style.background = '#f8f9fa';
+            setTimeout(() => myReviewElem.style.background = '', 1500);
+          }
+        }
+      };
+    } else {
+      reviewBtn.textContent = 'Đánh giá sản phẩm';
+      reviewBtn.onclick = openReviewModal;
+    }
+  }
 }
 
 // Helper to extract username from JWT token
@@ -646,7 +674,7 @@ async function updateProductDetails() {
     return;
   }
   try {
-    const response = await fetch(`https://yours-fashion.vercel.app/api/designs/${designId}`);
+    const response = await fetch(`${window.API_BASE_URL}/api/designs/${designId}`);
     if (!response.ok) {
       throw new Error('Network response was not ok: ' + response.status);
     }

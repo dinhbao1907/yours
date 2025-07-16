@@ -168,6 +168,12 @@
 }
 </style>
   <script>
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+</script>
+  <script>
 document.addEventListener('DOMContentLoaded', async function() {
   // 1. Get username from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -204,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // 2. Try to fetch designer info
   let designerInfoLoaded = false;
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/users/' + encodeURIComponent(username));
+    const res = await fetch(`${window.API_BASE_URL}/api/users/` + encodeURIComponent(username));
     if (!res.ok) throw new Error('Không tìm thấy nhà thiết kế');
     const designer = await res.json();
     designerNameElem.className = '';
@@ -230,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/designs');
+    const res = await fetch(`${window.API_BASE_URL}/api/designs`);
     const designs = await res.json();
     const filtered = (Array.isArray(designs) ? designs : []).filter(d => d.username === username);
     if (filtered.length > 0) {

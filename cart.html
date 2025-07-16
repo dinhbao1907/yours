@@ -472,7 +472,7 @@
           <div class="cart-item${item.checked ? ' selected' : ''}">
             <input type="checkbox" class="cart-checkbox" data-idx="${idx}" ${item.checked ? 'checked' : ''}>
             ${productLink ? `<a href="${productLink}" class="cart-item-link" style="display:contents;">` : ''}
-            <img src="${item.image}" alt="${item.name}" class="cart-item-img" style="cursor:pointer;">
+            <img src="${item.designImage || item.image}" alt="${item.name}" class="cart-item-img" style="cursor:pointer;">
             ${productLink ? '</a>' : ''}
             <div class="cart-item-info">
               ${productLink ? `<a href="${productLink}" class="cart-item-link" style="color:inherit;text-decoration:none;">` : ''}
@@ -530,8 +530,20 @@
           renderCart();
         }
       });
-      checkoutBtn.addEventListener('click', function() {
-        window.location.href = 'checkout.html';
-      });
-      });
+      // Only one checkoutBtn event listener for checked items
+      if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var cartKey = getCartKey();
+          var cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+          var selectedItems = cart.filter(function(item) { return item.checked; });
+          if (selectedItems.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+            return;
+          }
+          localStorage.setItem('cartCheckoutItems', JSON.stringify(selectedItems));
+          window.location.href = 'checkout.html';
+        });
+      }
+    });
   </script>

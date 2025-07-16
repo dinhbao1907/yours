@@ -285,7 +285,7 @@
     }
 
     // Gọi API để lấy thông tin người dùng
-    fetch('https://yours-fashion.vercel.app/api/user', {
+    fetch(`${window.API_BASE_URL}/api/user`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

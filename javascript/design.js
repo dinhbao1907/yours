@@ -1,3 +1,19 @@
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
+// Function to get role from token (global scope)
+function getRoleFromToken() {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch (e) { return null; }
+}
+
 let currentColor = 'white';
 let currentApparel = 'tshirt';
 
@@ -732,10 +748,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const method = isEditingDraft ? 'PUT' : 'POST';
 
       try {
-        console.log(`Making request to: https://yours-fashion.vercel.app${endpoint} [${method}]`);
+        console.log(`Making request to: ${window.API_BASE_URL}${endpoint} [${method}]`);
         console.log('🔑 Authorization header:', `Bearer ${token.substring(0, 20)}...`);
         
-        const response = await fetch(`https://yours-fashion.vercel.app${endpoint}`, {
+        const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
           method: method,
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1393,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       console.log(`Saving draft using ${method} ${endpoint}, isEditingDraft: ${isEditingDraft}`);
       
-              const response = await fetch(`https://yours-fashion.vercel.app${endpoint}`, {
+              const response = await fetch(`${window.API_BASE_URL}${endpoint}`, {
         method: method,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1422,7 +1438,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- LOAD DRAFT LOGIC ---
   if (draftDesignId) {
     const token = localStorage.getItem('token');
-    fetch('https://yours-fashion.vercel.app/api/my-designs', {
+    fetch(`${window.API_BASE_URL}/api/my-designs`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -1620,10 +1636,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
       e.stopPropagation();
       console.log('Calling saveDraft function...'); // Debug log
+      const token = localStorage.getItem('token');
       const role = getRoleFromToken();
       if (role === 'customer') {
-        // Customer: save draft to localStorage under 'customerDrafts_USERNAME' with design elements
-        const username = localStorage.getItem('currentUser');
+        // Customer: save draft to backend API
         const productCode = productCodeInput ? productCodeInput.value : '';
         const material = materialInput ? materialInput.value : '';
         const price = 150000;
@@ -1632,6 +1648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const size = sizeEl ? sizeEl.value : '';
         const notes = notesEl ? notesEl.value : '';
         const designImage = await captureDesignImage();
+        
         // Collect design elements (use container's left/top/width/height)
         const designElements = Array.from(document.querySelectorAll('.design-element-container')).map(container => {
           const img = container.querySelector('img');
@@ -1644,25 +1661,43 @@ document.addEventListener('DOMContentLoaded', async () => {
             height: parseFloat(container.style.height) || 100
           };
         });
-        const draft = {
-          productCode,
-          material,
-          price,
-          size,
-          notes,
-          designImage,
-          designElements,
+        
+        // Create draft data for backend
+        const designData = {
+          designId: generateUUID(), // Generate unique ID for each draft save
+          name: 'Thiết kế tùy chỉnh',
+          productType: 'Áo T-shirt',
+          material: material || 'Vải Cotton',
           color: currentColor,
-          apparel: currentApparel,
-          type: 'custom-design',
-          timestamp: Date.now()
+          price: price,
+          productCode: generateProductCode(), // Always generate new product code for drafts
+          description: notes || '',
+          designElements: designElements,
+          designImage: designImage,
+          status: 'draft'
         };
-        let drafts = JSON.parse(localStorage.getItem('customerDrafts_' + username)) || [];
-        // Replace if same productCode exists
-        const idx = drafts.findIndex(d => d.productCode === productCode);
-        if (idx !== -1) drafts[idx] = draft; else drafts.push(draft);
-        localStorage.setItem('customerDrafts_' + username, JSON.stringify(drafts));
-        alert('Thiết kế nháp đã được lưu!');
+        
+        try {
+          const response = await fetch(`${window.API_BASE_URL}/api/submit-design`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(designData)
+          });
+          
+          const result = await response.json();
+          if (response.ok) {
+            alert('Thiết kế nháp đã được lưu!');
+            unsavedChanges = false;
+          } else {
+            alert(result.message || 'Lỗi khi lưu nháp thiết kế');
+          }
+        } catch (error) {
+          console.error('Error saving customer draft:', error);
+          alert('Lỗi kết nối server: ' + error.message);
+        }
         return;
       }
       // --- DESIGNER LOGIC ---
@@ -1706,14 +1741,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Load customer draft if present
-  function getRoleFromToken() {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role;
-    } catch (e) { return null; }
-  }
   const role = getRoleFromToken();
   if (role === 'customer' && localStorage.getItem('editDraft')) {
     try {
@@ -1776,6 +1803,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Default: show both if role is unknown
     if (designerFields) designerFields.style.display = '';
     if (customerFields) customerFields.style.display = '';
+  }
+
+  // After role is determined, update main action button text for customer
+  const mainActionBtnText = document.getElementById('mainActionBtnText');
+  if (role === 'customer' && mainActionBtnText) {
+    mainActionBtnText.textContent = 'In Ngay';
   }
 });
 

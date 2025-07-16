@@ -1,3 +1,9 @@
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
 document.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('designerProductGrid');
   const searchInput = document.getElementById('designerSearchInput');
@@ -115,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch designer's products
   function fetchDesigns() {
     showLoadingSpinner();
-    fetch('https://yours-fashion.vercel.app/api/my-designs', {
+    fetch(`${window.API_BASE_URL}/api/my-designs`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -278,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Bạn có chắc muốn xóa nháp này?')) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`/api/designs/${designId}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/designs/${designId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -297,14 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load designer stats
   async function loadDesignerStats() {
     try {
-      const res = await fetch('https://yours-fashion.vercel.app/api/designer/stats', {
+      const res = await fetch(`${window.API_BASE_URL}/api/designer/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to load stats');
       const stats = await res.json();
       designerStats = stats;
       // Load recent transactions to get pending withdrawals
-      const txRes = await fetch('https://yours-fashion.vercel.app/api/designer/transactions', {
+      const txRes = await fetch(`${window.API_BASE_URL}/api/designer/transactions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       let transactions = [];
@@ -344,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load recent transactions
   async function loadRecentTransactions() {
     try {
-      const res = await fetch('https://yours-fashion.vercel.app/api/designer/transactions', {
+      const res = await fetch(`${window.API_BASE_URL}/api/designer/transactions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -506,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
       withdrawBtn.disabled = true;
       withdrawBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
       
-      const res = await fetch('https://yours-fashion.vercel.app/api/designer/withdraw', {
+      const res = await fetch(`${window.API_BASE_URL}/api/designer/withdraw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -663,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const res = await fetch(`https://yours-fashion.vercel.app/api/designer/withdrawals/${transactionId}/cancel`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/designer/withdrawals/${transactionId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

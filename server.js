@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 console.log('MONGODB_URI:', process.env.MONGODB_URI); // Thêm log để kiểm tra
+console.log('MONGODB_URI length:', process.env.MONGODB_URI ? process.env.MONGODB_URI.length : 'undefined');
+console.log('MONGODB_URI starts with mongodb:', process.env.MONGODB_URI ? process.env.MONGODB_URI.startsWith('mongodb') : 'undefined');
 const {
   sendRegistrationEmail,
   sendPasswordResetEmail,
@@ -36,42 +38,90 @@ const Withdrawal = require("./models/Withdrawal");
 const app = express();
 app.use(express.static(__dirname));
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['https://yoursfashion.id.vn', 'https://yours-fashion.vercel.app', 'http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:3000', 'http://127.0.0.1:5500'];
+
 app.use(cors({
-  origin: [
-    'https://yoursfashion.id.vn',
-    'https://yours-fashion.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
 
+// Middleware to ensure MongoDB is connected before handling any request
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
+  next();
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV || 'development',
+    mongodb_uri_set: !!process.env.MONGODB_URI
+  });
+});
+
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Kiểm tra MONGODB_URI
 const mongodbUri = process.env.MONGODB_URI;
 if (!mongodbUri) {
-  console.error("MONGODB_URI is not defined in .env file. Please set it.");
-  process.exit(1);
+  console.error("MONGODB_URI is not defined in environment variables. Please set it in Vercel dashboard.");
+  // Don't exit process in Vercel, just log the error
 }
 
 // Kết nối MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-  })
-  .then(async () => {
+async function connectDB() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
     console.log("Connected to MongoDB successfully");
     
     // Create default admin account
     await createDefaultAdmin();
-    
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server running on port ${process.env.PORT || 3000}`);
-    });
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error("MongoDB connection error:", err);
-    process.exit(1);
+    // Don't exit process in Vercel, just log the error
+  }
+}
+
+// Connect to database
+connectDB();
+
+// Only start server if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server running on port ${process.env.PORT || 3000}`);
   });
+}
 
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -1248,10 +1298,31 @@ app.put('/api/update-draft', authMiddleware, async (req, res) => {
 // API lấy tất cả thiết kế đã duyệt (for homepage/products and designer shop)
 app.get('/api/designs', async (req, res) => {
   try {
-    const designs = await Design.find({});
+    // Only return approved designs for public display
+    const designs = await Design.find({ 
+      status: 'approved'  // Only show approved designs
+    }).sort({ createdAt: -1 }); // Sort by newest first
     res.json(designs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch designs' });
+  }
+});
+
+// API lấy chi tiết một thiết kế đã duyệt (for product details page)
+app.get('/api/designs/:designId', async (req, res) => {
+  try {
+    const design = await Design.findOne({ 
+      designId: req.params.designId,
+      status: 'approved'  // Only return approved designs
+    });
+    
+    if (!design) {
+      return res.status(404).json({ message: 'Design not found' });
+    }
+    
+    res.json(design);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch design' });
   }
 });
 
@@ -1264,6 +1335,30 @@ app.get('/api/my-designs', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi lấy thiết kế của designer:', error);
     res.status(500).json({ message: 'Lỗi máy chủ nội bộ khi lấy thiết kế', error: error.message });
+  }
+});
+
+// API lấy drafts của customer đang đăng nhập
+app.get('/api/my-drafts', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const username = req.user.username;
+    const role = req.user.role;
+    
+    // Only customers can access drafts
+    if (role !== 'customer') {
+      return res.status(403).json({ message: 'Chỉ khách hàng mới có thể truy cập drafts' });
+    }
+    
+    const drafts = await Design.find({ 
+      userId: userId,
+      status: 'draft'
+    }).sort({ updatedAt: -1 });
+    
+    res.status(200).json(drafts);
+  } catch (error) {
+    console.error('Lỗi khi lấy drafts của customer:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ nội bộ khi lấy drafts', error: error.message });
   }
 });
 
@@ -1477,7 +1572,10 @@ app.post('/api/designs/:designId/like', async (req, res) => {
   try {
     const { designId } = req.params;
     const design = await Design.findOneAndUpdate(
-      { designId },
+      { 
+        designId,
+        status: 'approved'  // Only allow likes on approved designs
+      },
       { $inc: { likes: 1 } },
       { new: true }
     );
@@ -1492,7 +1590,10 @@ app.post('/api/designs/:designId/like', async (req, res) => {
 app.post('/api/designs/:designId/unlike', async (req, res) => {
   try {
     const { designId } = req.params;
-    const design = await Design.findOne({ designId });
+    const design = await Design.findOne({ 
+      designId,
+      status: 'approved'  // Only allow unlikes on approved designs
+    });
     if (!design) return res.status(404).json({ message: 'Design not found' });
     design.likes = Math.max(0, (design.likes || 0) - 1);
     await design.save();
@@ -1706,16 +1807,44 @@ app.post('/api/create-payos-order', async (req, res) => {
 app.get('/api/admin/stats', adminAuthMiddleware, async (req, res) => {
   try {
     // Count orders, customers, designers, products
-    const [orders, customers, designers, products] = await Promise.all([
+    const [orders, customers, designers, reviews] = await Promise.all([
       Order.countDocuments(),
       Customer.countDocuments(),
       Designer.countDocuments(),
-      Design.countDocuments(),
+      Review.countDocuments(), // Count reviews instead of products
     ]);
     // Sum revenue from paid orders (including all post-paid statuses)
     const paidOrders = await Order.find({ status: { $in: ['PAID', 'DESIGN_IN_PROGRESS', 'DESIGN_APPROVED', 'COMPLETED', 'DELIVERED', 'DELIVERED_FINAL'] } });
-    const revenue = paidOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
-    res.json({ revenue, orders, customers, designers, products });
+    let revenue = 0;
+    paidOrders.forEach(order => {
+      // Defensive: fallback to 0 if missing
+      const productTotal = order.productTotal || 0;
+      if (order.orderType === 'product_purchase') {
+        revenue += productTotal * 0.6;
+      } else if (order.orderType === 'custom_design') {
+        revenue += productTotal;
+      } else if (order.orderType === 'mixed') {
+        // For mixed, try to split productTotal between items and customDesign
+        let productPart = 0;
+        let customPart = 0;
+        // If items exist, sum their price*quantity
+        if (order.items && order.items.length > 0) {
+          productPart = order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+        }
+        // If customDesign exists, estimate its value
+        if (order.customDesign && order.customDesign.price) {
+          customPart = (order.customDesign.price || 0) * (order.customDesign.quantity || 1);
+        } else if (order.customDesign && order.customDesign.quantity) {
+          // If price not present, fallback to splitting productTotal
+          // Assume custom part = productTotal - productPart
+          customPart = productTotal - productPart;
+        }
+        // Defensive: ensure no negative customPart
+        if (customPart < 0) customPart = 0;
+        revenue += productPart * 0.6 + customPart;
+      }
+    });
+    res.json({ revenue: Math.round(revenue), orders, customers, designers, products: reviews });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch admin stats', details: err.message });
   }
@@ -1734,6 +1863,34 @@ app.delete('/api/designs/:designId', authMiddleware, async (req, res) => {
     res.json({ message: 'Đã xóa nháp thành công.' });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi server khi xóa thiết kế.' });
+  }
+});
+
+// Xóa draft thiết kế (chỉ cho chủ sở hữu)
+app.delete('/api/delete-draft', authMiddleware, async (req, res) => {
+  try {
+    const designId = req.query.designId;
+    const userId = req.user.id;
+    
+    if (!designId) {
+      return res.status(400).json({ message: 'Thiếu designId.' });
+    }
+    
+    // Only allow deleting own draft
+    const design = await Design.findOne({ designId, status: 'draft' });
+    if (!design) {
+      return res.status(404).json({ message: 'Không tìm thấy thiết kế nháp.' });
+    }
+    
+    if (design.userId.toString() !== userId) {
+      return res.status(403).json({ message: 'Bạn không có quyền xóa thiết kế nháp này.' });
+    }
+    
+    await Design.deleteOne({ designId, status: 'draft' });
+    res.json({ message: 'Đã xóa thiết kế nháp thành công.' });
+  } catch (err) {
+    console.error('Error deleting draft:', err);
+    res.status(500).json({ message: 'Lỗi server khi xóa thiết kế nháp.' });
   }
 });
 
@@ -2859,7 +3016,10 @@ app.get('/api/admin/notifications', async (req, res) => {
 // API: Get designer info for a design
 app.get('/api/designs/:designId/designer', async (req, res) => {
   try {
-    const design = await Design.findOne({ designId: req.params.designId });
+    const design = await Design.findOne({ 
+      designId: req.params.designId,
+      status: 'approved'  // Only return info for approved designs
+    });
     if (!design) return res.status(404).json({ message: 'Design not found' });
     const designer = await Designer.findOne({ username: design.username });
     if (!designer) {
@@ -3454,6 +3614,126 @@ app.get('/api/users/:username', async (req, res) => {
     res.json(userObj);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// API: Dashboard graph data for revenue, orders, customers, designers
+app.get('/api/admin/dashboard-graph', adminAuthMiddleware, async (req, res) => {
+  try {
+    const filter = req.query.filter || 'month'; // 'day', 'month', 'year'
+    let groupFormat, dateFormat, groupCount;
+    const now = new Date();
+    if (filter === 'day') {
+      groupFormat = { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } };
+      dateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      groupCount = 30;
+    } else if (filter === 'year') {
+      groupFormat = { $dateToString: { format: '%Y', date: '$createdAt' } };
+      dateFormat = { year: 'numeric' };
+      groupCount = 5;
+    } else {
+      // Default: month
+      groupFormat = { $dateToString: { format: '%Y-%m', date: '$createdAt' } };
+      dateFormat = { year: 'numeric', month: '2-digit' };
+      groupCount = 12;
+    }
+
+    // Helper to generate all time labels (matching aggregation _id format)
+    function pad(n) { return n < 10 ? '0' + n : n; }
+    function generateLabels() {
+      const labels = [];
+      let d = new Date(now);
+      for (let i = groupCount - 1; i >= 0; i--) {
+        let label;
+        if (filter === 'day') {
+          const day = new Date(d.getFullYear(), d.getMonth(), d.getDate() - i);
+          label = `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
+        } else if (filter === 'year') {
+          const year = d.getFullYear() - i;
+          label = year.toString();
+        } else {
+          // month
+          const month = new Date(d.getFullYear(), d.getMonth() - i, 1);
+          label = `${month.getFullYear()}-${pad(month.getMonth() + 1)}`;
+        }
+        labels.push(label);
+      }
+      return labels;
+    }
+    const labels = generateLabels();
+
+    // Helper to map aggregation results to label array
+    function mapAggToLabels(agg, key = 'count') {
+      const map = {};
+      agg.forEach(item => { map[item._id] = item[key]; });
+      return labels.map(l => map[l] || 0);
+    }
+
+    // Revenue aggregation (same logic as stats, but grouped)
+    const paidStatuses = ['PAID', 'DESIGN_IN_PROGRESS', 'DESIGN_APPROVED', 'COMPLETED', 'DELIVERED', 'DELIVERED_FINAL'];
+    const revenueAgg = await Order.aggregate([
+      { $match: { status: { $in: paidStatuses } } },
+      { $addFields: { group: groupFormat } },
+      { $group: { _id: '$group', orders: { $push: '$$ROOT' } } },
+      { $sort: { _id: 1 } }
+    ]);
+    // Calculate revenue per group
+    const revenueByGroup = revenueAgg.map(g => {
+      let revenue = 0;
+      g.orders.forEach(order => {
+        const productTotal = order.productTotal || 0;
+        if (order.orderType === 'product_purchase') {
+          revenue += productTotal * 0.6;
+        } else if (order.orderType === 'custom_design') {
+          revenue += productTotal;
+        } else if (order.orderType === 'mixed') {
+          let productPart = 0, customPart = 0;
+          if (order.items && order.items.length > 0) {
+            productPart = order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+          }
+          if (order.customDesign && order.customDesign.price) {
+            customPart = (order.customDesign.price || 0) * (order.customDesign.quantity || 1);
+          } else if (order.customDesign && order.customDesign.quantity) {
+            customPart = productTotal - productPart;
+          }
+          if (customPart < 0) customPart = 0;
+          revenue += productPart * 0.6 + customPart;
+        }
+      });
+      return { _id: g._id, revenue: Math.round(revenue) };
+    });
+    const revenueMap = {};
+    revenueByGroup.forEach(item => { revenueMap[item._id] = item.revenue; });
+    const revenue = labels.map(l => revenueMap[l] || 0);
+
+    // Orders aggregation
+    const ordersAgg = await Order.aggregate([
+      { $addFields: { group: groupFormat } },
+      { $group: { _id: '$group', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
+    const orders = mapAggToLabels(ordersAgg);
+
+    // Customers aggregation
+    const customersAgg = await Customer.aggregate([
+      { $addFields: { group: groupFormat } },
+      { $group: { _id: '$group', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
+    const customers = mapAggToLabels(customersAgg);
+
+    // Designers aggregation
+    const designersAgg = await Designer.aggregate([
+      { $addFields: { group: groupFormat } },
+      { $group: { _id: '$group', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
+    const designers = mapAggToLabels(designersAgg);
+
+    res.json({ labels, revenue, orders, customers, designers });
+  } catch (err) {
+    console.error('Error in /api/admin/dashboard-graph:', err);
+    res.status(500).json({ error: 'Failed to fetch dashboard graph data', details: err.message });
   }
 });
 

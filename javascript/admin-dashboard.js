@@ -1,6 +1,16 @@
 // Admin Dashboard JS
 // Fetch and render all dashboard data, handle actions, auto-update
 
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
+// Add these at the top, after window.API_BASE_URL definition
+window._revenueChartInstance = null;
+window._countsChartInstance = null;
+
 // Check admin authentication
 function checkAdminAuth() {
   const adminToken = localStorage.getItem('adminToken');
@@ -102,7 +112,7 @@ async function loadStats(filter = 'month') {
       card.classList.add('loading');
       card.textContent = '...';
     });
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/stats?filter=${filter}`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/stats?filter=${filter}`, {
       headers: getAuthHeaders()
     });
     if (res.status === 401 || res.status === 403) {
@@ -158,7 +168,7 @@ function animateValue(elementId, start, end, duration, formatter = (val) => val)
 // Fetch and render recent orders
 async function loadRecentOrders(filter = 'month') {
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/orders?limit=5&filter=${filter}`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/orders?limit=5&filter=${filter}`, {
       headers: getAuthHeaders()
     });
     const orders = await safeJsonArray(res);
@@ -275,7 +285,7 @@ async function loadRecentOrders(filter = 'month') {
 // Fetch and render designs for approval
 async function loadDesigns() {
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/admin/designs', {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designs`, {
       headers: getAuthHeaders()
     });
     
@@ -358,7 +368,7 @@ function renderDesignsTable(designs) {
 
 // Fetch and render best sellers
 async function loadBestSellers(filter = 'month') {
-  const res = await fetch(`https://yours-fashion.vercel.app/api/admin/best-sellers?filter=${filter}`);
+  const res = await fetch(`${window.API_BASE_URL}/api/admin/best-sellers?filter=${filter}`);
   const products = await res.json();
   const container = document.getElementById('bestSellers');
   container.innerHTML = '';
@@ -377,7 +387,7 @@ async function loadBestSellers(filter = 'month') {
 
 // Fetch and render analytics (charts)
 async function loadAnalytics(filter = 'month') {
-  const res = await fetch(`https://yours-fashion.vercel.app/api/admin/analytics?filter=${filter}`);
+  const res = await fetch(`${window.API_BASE_URL}/api/admin/analytics?filter=${filter}`);
   const data = await res.json();
   const ctx = document.getElementById('revenueChart').getContext('2d');
   if (window._revenueChartInstance) {
@@ -439,7 +449,7 @@ async function loadAnalytics(filter = 'month') {
 // Render order statistics cards and chart in the dashboard
 async function loadOrderStats(filter = 'month') {
   // Fetch order stats from backend
-  const res = await fetch(`https://yours-fashion.vercel.app/api/admin/order-stats?filter=${filter}`);
+  const res = await fetch(`${window.API_BASE_URL}/api/admin/order-stats?filter=${filter}`);
   const stats = await res.json();
 
   // Render mini-stat cards
@@ -500,6 +510,7 @@ function reloadDashboardDataWithFilter(filter) {
   loadBestSellers(filter);
   loadAnalytics(filter);
   loadOrderStats(filter);
+  loadDashboardGraphs(filter); // NEW
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -516,16 +527,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Approve/reject actions
 window.approveOrder = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${id}/approve`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/orders/${id}/approve`, { method: 'POST' });
   loadRecentOrders();
 };
 window.rejectOrder = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${id}/reject`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/orders/${id}/reject`, { method: 'POST' });
   loadRecentOrders();
 };
 window.approveDesign = async function(id) {
   try {
-    const response = await fetch(`https://yours-fashion.vercel.app/api/admin/designs/${id}/approve`, { 
+    const response = await fetch(`${window.API_BASE_URL}/api/admin/designs/${id}/approve`, { 
       method: 'POST',
       headers: getAuthHeaders()
     });
@@ -547,14 +558,14 @@ window.rejectDesign = function(id) {
   document.getElementById('rejectReasonInput').value = '';
 };
 window.completeOrder = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${id}/complete`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/orders/${id}/complete`, { method: 'POST' });
   loadAllOrders();
 };
 window.deliverOrder = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${id}/deliver`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/orders/${id}/deliver`, { method: 'POST' });
 };
 window.finishOrder = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${id}/finish`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/orders/${id}/finish`, { method: 'POST' });
 };
 
 // Initial load
@@ -567,9 +578,8 @@ async function loadDashboard() {
   await loadAnalytics();
   await loadDesigners();
   await loadCustomers();
-  
-  // Create demo notification for testing
   await createDemoNotification();
+  await loadDashboardGraphs(); // NEW
 }
 
 // Debug function to check designs in database
@@ -721,7 +731,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('editDesignName').value.trim();
     const description = document.getElementById('editDesignDesc').value.trim();
     const price = parseInt(document.getElementById('editDesignPrice').value, 10);
-    await fetch(`https://yours-fashion.vercel.app/api/admin/designs/${id}`, {
+    await fetch(`${window.API_BASE_URL}/api/admin/designs/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, description, price })
@@ -757,7 +767,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const response = await fetch(`https://yours-fashion.vercel.app/api/admin/designs/${id}/reject`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/designs/${id}/reject`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ rejectionReason: reason })
@@ -783,7 +793,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // Fetch and render designers
 async function loadDesigners() {
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/admin/designers');
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designers`);
     const designers = await res.json();
     
     // Store all designers for search
@@ -894,7 +904,7 @@ async function unbanDesigner(designerId) {
   if (!confirm('Bạn có chắc chắn muốn bỏ cấm designer này?')) return;
   
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/designers/${designerId}/unban`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designers/${designerId}/unban`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminUsername: 'Admin' })
@@ -937,7 +947,7 @@ async function deleteDesigner(designerId) {
 // View designer details
 async function viewDesignerDetails(designerId) {
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/designers/${designerId}`);
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designers/${designerId}`);
     const data = await res.json();
     
     const designer = data.designer;
@@ -1040,7 +1050,7 @@ async function viewDesignerDetails(designerId) {
 // Fetch and render customers
 async function loadCustomers() {
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/admin/customers');
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/customers`);
     const customers = await res.json();
     
     // Store all customers for search
@@ -1142,7 +1152,7 @@ async function unbanCustomer(customerId) {
   if (!confirm('Bạn có chắc chắn muốn bỏ cấm khách hàng này?')) return;
   
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/customers/${customerId}/unban`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/customers/${customerId}/unban`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminUsername: 'Admin' })
@@ -1185,7 +1195,7 @@ async function deleteCustomer(customerId) {
 // View customer details
 async function viewCustomerDetails(customerId) {
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/customers/${customerId}`);
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/customers/${customerId}`);
     const data = await res.json();
     
     const customer = data.customer;
@@ -1291,7 +1301,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const res = await fetch(`https://yours-fashion.vercel.app/api/admin/designers/${designerId}/ban`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/admin/designers/${designerId}/ban`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1346,7 +1356,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const res = await fetch(`https://yours-fashion.vercel.app/api/admin/designers/${designerId}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/admin/designers/${designerId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1423,7 +1433,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const res = await fetch(`https://yours-fashion.vercel.app/api/admin/customers/${customerId}/ban`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/admin/customers/${customerId}/ban`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1478,7 +1488,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const res = await fetch(`https://yours-fashion.vercel.app/api/admin/customers/${customerId}`, {
+      const res = await fetch(`${window.API_BASE_URL}/api/admin/customers/${customerId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1529,7 +1539,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ===== ADMIN NOTIFICATIONS LOGIC =====
 
 async function loadNotifications() {
-  const res = await fetch('https://yours-fashion.vercel.app/api/admin/notifications?limit=100');
+  const res = await fetch(`${window.API_BASE_URL}/api/admin/notifications?limit=100`);
   const notifications = await res.json();
   renderNotifications(notifications);
 }
@@ -1607,23 +1617,23 @@ function timeSince(date) {
 }
 
 window.markNotificationRead = async function(id) {
-  await fetch(`https://yours-fashion.vercel.app/api/admin/notifications/${id}/read`, { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/notifications/${id}/read`, { method: 'POST' });
   loadNotifications();
 };
 
 window.deleteNotification = async function(id) {
   if (!confirm('Bạn có chắc chắn muốn xóa thông báo này?')) return;
-  await fetch(`https://yours-fashion.vercel.app/api/admin/notifications/${id}`, { method: 'DELETE' });
+  await fetch(`${window.API_BASE_URL}/api/admin/notifications/${id}`, { method: 'DELETE' });
   loadNotifications();
 };
 
 document.getElementById('markAllReadBtn').onclick = async function() {
-  await fetch('https://yours-fashion.vercel.app/api/admin/notifications/read-all', { method: 'POST' });
+  await fetch(`${window.API_BASE_URL}/api/admin/notifications/read-all`, { method: 'POST' });
   loadNotifications();
 };
 document.getElementById('clearAllBtn').onclick = async function() {
   if (!confirm('Bạn có chắc chắn muốn xóa tất cả thông báo?')) return;
-  await fetch('https://yours-fashion.vercel.app/api/admin/notifications', { method: 'DELETE' });
+  await fetch(`${window.API_BASE_URL}/api/admin/notifications`, { method: 'DELETE' });
   loadNotifications();
 };
 
@@ -1928,7 +1938,7 @@ document.head.appendChild(style);
 // Fetch and render all orders
 async function loadAllOrders() {
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/admin/orders', {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/orders`, {
       headers: getAuthHeaders()
     });
     
@@ -2354,7 +2364,7 @@ async function updateCustomDesignStatus(orderId) {
     const status = document.getElementById('designStatusSelect').value;
     const notes = document.getElementById('designNotes').value;
     
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/orders/${orderId}/design-status`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/orders/${orderId}/design-status`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2401,14 +2411,14 @@ async function updateOrderStatus(orderId, status) {
   else if (status === 'DELIVERED_FINAL') endpoint = `/api/admin/orders/${orderId}/finish`;
   else if (status === 'CANCELED') endpoint = `/api/admin/orders/${orderId}/reject`;
   if (endpoint) {
-    await fetch(`https://yours-fashion.vercel.app${endpoint}`, { method: 'POST' });
+    await fetch(`${window.API_BASE_URL}${endpoint}`, { method: 'POST' });
   }
 }
 
 // Fetch and render designs for approval
 async function loadDesigns() {
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/admin/designs', {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designs`, {
       headers: getAuthHeaders()
     });
     
@@ -2646,7 +2656,7 @@ function closeOrderDetailsModal() {
 // Load designer payouts
 async function loadDesignerPayouts() {
   try {
-    const response = await fetch('https://yours-fashion.vercel.app/api/admin/designer-payouts', {
+    const response = await fetch(`${window.API_BASE_URL}/api/admin/designer-payouts`, {
       headers: getAuthHeaders()
     });
     
@@ -2722,7 +2732,7 @@ async function payDesigner(designerUsername) {
   }
   
   try {
-    const res = await fetch(`https://yours-fashion.vercel.app/api/admin/designer-payouts/${designerUsername}/pay`, {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/designer-payouts/${designerUsername}/pay`, {
       method: 'POST',
       headers: getAuthHeaders()
     });
@@ -2776,7 +2786,7 @@ function setupPayoutSearch() {
 async function loadWithdrawals() {
   console.log('[DEBUG] loadWithdrawals called');
   try {
-    const response = await fetch('https://yours-fashion.vercel.app/api/admin/withdrawals', {
+    const response = await fetch(`${window.API_BASE_URL}/api/admin/withdrawals`, {
       headers: getAuthHeaders()
     });
     
@@ -2869,7 +2879,7 @@ function setupProcessWithdrawalModal() {
       return;
     }
     try {
-      const response = await fetch(`https://yours-fashion.vercel.app/api/admin/withdrawals/${transactionId}/process`, {
+      const response = await fetch(`${window.API_BASE_URL}/api/admin/withdrawals/${transactionId}/process`, {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
@@ -3064,7 +3074,7 @@ function getWithdrawalStatusText(status) {
 async function processWithdrawal(transactionId) {
   try {
     // Get withdrawal details first
-    const response = await fetch(`https://yours-fashion.vercel.app/api/admin/withdrawals?transactionId=${transactionId}`, {
+    const response = await fetch(`${window.API_BASE_URL}/api/admin/withdrawals?transactionId=${transactionId}`, {
       headers: getAuthHeaders()
     });
     
@@ -3098,3 +3108,106 @@ renderWithdrawalTable(allWithdrawals);
 statusFilter.onchange = () => {
   renderWithdrawalTable(allWithdrawals);
 };
+
+// ====== NEW DASHBOARD GRAPHS LOGIC ======
+async function loadDashboardGraphs(filter = 'month') {
+  try {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/dashboard-graph?filter=${filter}`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch dashboard graph data');
+    const data = await res.json();
+    // Render Revenue Chart
+    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+    if (window._revenueChartInstance) window._revenueChartInstance.destroy();
+    window._revenueChartInstance = new Chart(ctxRevenue, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: 'Doanh thu',
+          data: data.revenue,
+          borderColor: '#7B3FF2',
+          backgroundColor: 'rgba(123,63,242,0.08)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: function(value) { return formatVND(value); } }
+          }
+        }
+      }
+    });
+    // Render Counts Chart
+    const ctxCounts = document.getElementById('countsChart').getContext('2d');
+    if (window._countsChartInstance) window._countsChartInstance.destroy();
+    window._countsChartInstance = new Chart(ctxCounts, {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [
+          {
+            label: 'Đơn hàng',
+            data: data.orders,
+            backgroundColor: '#7B3FF2',
+            borderRadius: 8,
+            maxBarThickness: 24
+          },
+          {
+            label: 'Khách hàng',
+            data: data.customers,
+            backgroundColor: '#4CAF50',
+            borderRadius: 8,
+            maxBarThickness: 24
+          },
+          {
+            label: 'Designer',
+            data: data.designers,
+            backgroundColor: '#FFA500',
+            borderRadius: 8,
+            maxBarThickness: 24
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error loading dashboard graphs:', error);
+  }
+}
+
+// Update dashboard filter logic to include loadDashboardGraphs
+function reloadDashboardDataWithFilter(filter) {
+  loadStats(filter);
+  loadRecentOrders(filter);
+  loadBestSellers(filter);
+  loadAnalytics(filter);
+  loadOrderStats(filter);
+  loadDashboardGraphs(filter); // NEW
+}
+
+// Initial load
+async function loadDashboard() {
+  await loadStats();
+  await loadRecentOrders();
+  await loadAllOrders();
+  await loadDesigns();
+  await loadBestSellers();
+  await loadAnalytics();
+  await loadDesigners();
+  await loadCustomers();
+  await createDemoNotification();
+  await loadDashboardGraphs(); // NEW
+}

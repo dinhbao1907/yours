@@ -254,7 +254,10 @@
   </div>
 
   <script>
-    window.API_BASE_URL = "https://yours-fashion.vercel.app";
+    window.API_BASE_URL =
+      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3000"
+        : "https://yours-fashion.vercel.app";
 
     document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
       e.preventDefault();

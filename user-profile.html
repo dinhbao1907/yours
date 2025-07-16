@@ -57,7 +57,8 @@
                 <span class="icon">🔑</span> Đổi mật khẩu
               </a>
             </li>
-            <li id="draftTabSidebar" style="display:none;">
+            <!-- Add Thiết Kế Nháp tab for customers only -->
+            <li id="draftsSidebarTab" style="display:none;">
               <a href="#" class="sidebar-action-btn animate-delay-4" onclick="showDrafts(); return false;">
                 <span class="icon">🎨</span> Thiết Kế Nháp
               </a>
@@ -536,4 +537,83 @@
       if (storeMenu) storeMenu.style.display = 'none';
     }
   })();
+  // Show drafts tab in sidebar for customers only
+(function() {
+  function getRoleFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role;
+    } catch (e) { return null; }
+  }
+  const role = getRoleFromToken();
+  const draftsSidebarTab = document.getElementById('draftsSidebarTab');
+  if (draftsSidebarTab && role === 'customer') {
+    draftsSidebarTab.style.display = 'block';
+  }
+})();
   </script>
+
+<!-- Custom Delete Draft Modal -->
+<div id="deleteDraftModal" class="custom-modal" style="display:none;">
+  <div class="custom-modal-content">
+    <h2 style="color:#8A4AF3;">Xác nhận xóa nháp</h2>
+    <p style="color:#333;">Bạn có chắc chắn muốn xóa thiết kế nháp này?</p>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:24px;">
+      <button id="cancelDeleteDraftBtn" class="custom-modal-btn" style="background:#eee;color:#8A4AF3;">Hủy</button>
+      <button id="confirmDeleteDraftBtn" class="custom-modal-btn primary" style="background:#e74c3c;">Xóa nháp</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Ensure delete draft modal buttons are clickable
+  const cancelDeleteDraftBtn = document.getElementById('cancelDeleteDraftBtn');
+  if (cancelDeleteDraftBtn) {
+    cancelDeleteDraftBtn.onclick = function() {
+      document.getElementById('deleteDraftModal').style.display = 'none';
+      window.draftToDelete = null;
+    };
+  }
+  const confirmDeleteDraftBtn = document.getElementById('confirmDeleteDraftBtn');
+  if (confirmDeleteDraftBtn) {
+    confirmDeleteDraftBtn.onclick = async function() {
+      if (!window.draftToDelete) return;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Vui lòng đăng nhập để thực hiện thao tác này.');
+        return;
+      }
+      try {
+        const response = await fetch(`${window.API_BASE_URL}/api/delete-draft?designId=${encodeURIComponent(window.draftToDelete)}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        document.getElementById('deleteDraftModal').style.display = 'none';
+        window.draftToDelete = null;
+        if (response.ok) {
+          alert('Đã xóa thiết kế nháp thành công!');
+          if (typeof showDrafts === 'function') showDrafts();
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Lỗi khi xóa thiết kế nháp.');
+        }
+      } catch (error) {
+        document.getElementById('deleteDraftModal').style.display = 'none';
+        window.draftToDelete = null;
+        alert('Lỗi kết nối server khi xóa thiết kế nháp.');
+      }
+    };
+  }
+});
+</script>
+
+<script>
+// Ensure global deleteDraft function sets window.draftToDelete and shows modal
+window.deleteDraft = function(draftId) {
+  window.draftToDelete = draftId;
+  document.getElementById('deleteDraftModal').style.display = 'flex';
+};
+</script>

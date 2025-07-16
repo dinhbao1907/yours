@@ -263,12 +263,6 @@
 }
 </style>
 <script>
-window.API_BASE_URL =
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://localhost:3000"
-    : "https://yours-fashion.vercel.app";
-</script>
-<script>
 document.addEventListener('DOMContentLoaded', function() {
   const designBtn = document.querySelector('button[onclick*="activateTab(\'design\')"]');
   const modal = document.getElementById('addToCartModal');
@@ -314,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Gọi API để lấy thông tin người dùng
-    fetch(`${window.API_BASE_URL}/api/user`, {
+    fetch('https://yours-fashion.vercel.app/api/user', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -1496,3 +1496,18 @@ h1 {
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+
+.custom-modal {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.18); z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.custom-modal-content {
+  background: #fff; border-radius: 18px; padding: 36px 32px 28px 32px; box-shadow: 0 8px 32px rgba(90,34,212,0.10);
+  min-width: 320px; max-width: 90vw; text-align: center;
+}
+.custom-modal-btn {
+  border: none; border-radius: 25px; padding: 12px 32px; font-weight: bold; font-size: 16px; cursor: pointer; transition: all 0.2s;
+}
+.custom-modal-btn.primary {
+  background: #8A4AF3; color: #fff;
+}

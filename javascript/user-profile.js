@@ -1,3 +1,9 @@
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
 // Lấy token từ localStorage
 const token = localStorage.getItem("token");
 if (!token) {
@@ -26,7 +32,7 @@ window.onload = async () => {
   if (profileContainer) profileContainer.style.display = "none";
   
   try {
-    const response = await fetch("https://yours-fashion.vercel.app/api/user", {
+    const response = await fetch(`${window.API_BASE_URL}/api/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -87,7 +93,7 @@ window.onload = async () => {
 // Hàm cập nhật thông tin người dùng
 async function updateProfile(data) {
   try {
-    const response = await fetch("https://yours-fashion.vercel.app/api/update-profile", {
+    const response = await fetch(`${window.API_BASE_URL}/api/update-profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -261,7 +267,7 @@ async function loadOrderHistory() {
   `;
   
   try {
-    const res = await fetch('https://yours-fashion.vercel.app/api/my-orders', {
+    const res = await fetch(`${window.API_BASE_URL}/api/my-orders`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -576,7 +582,7 @@ function openReviewModal(designId) {
           if (avatar && avatar !== 'resources/user-circle.png') {
             reviewData.avatar = avatar;
           }
-          const response = await fetch('https://yours-fashion.vercel.app/api/reviews', {
+          const response = await fetch(`${window.API_BASE_URL}/api/reviews`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reviewData)
@@ -589,20 +595,16 @@ function openReviewModal(designId) {
           console.log('Review submission response data:', data);
           
           if (response.ok) {
-            console.log('Review submitted successfully!');
-            // Show custom thank you popup instead of alert
-            showThankYouPopup();
+            alert('Cảm ơn bạn đã gửi đánh giá!');
             document.getElementById('reviewForm').reset();
             stars.forEach(s => s.classList.remove('selected'));
             closeReviewModal();
-            // Refresh order history to update review buttons
-            if (document.getElementById('orderHistoryContainer').style.display !== 'none') {
-              loadOrderHistory();
-            }
-            // Trigger storage event for product view reload
+            // Refresh reviews and order history immediately
+            await loadReviews(designId);
+            await loadOrderHistory();
+            // Trigger storage event for other tabs
             localStorage.setItem('review_update', JSON.stringify({ designId, timestamp: Date.now() }));
           } else {
-            console.error('Review submission failed:', data);
             alert(data.message || 'Lỗi khi gửi đánh giá!');
           }
         } catch (error) {
@@ -742,7 +744,7 @@ window.showChangeCredentials = function() {
 };
 
 // Add function for drafts tab
-window.showDrafts = function() {
+window.showDrafts = async function() {
   // Hide all containers with slide-out animation
   const containers = ['editProfileContainer', 'orderHistoryContainer', 'changeCredentialsContainer'];
   containers.forEach(containerId => {
@@ -756,13 +758,11 @@ window.showDrafts = function() {
       }, 300);
     }
   });
-  
   // Hide the filter bar
   const filterBar = document.getElementById('orderHistoryFilterBar');
   if (filterBar) {
     filterBar.style.display = 'none';
   }
-  
   // Show drafts with slide-in animation
   const draftsContainer = document.getElementById('draftsContainer');
   if (draftsContainer) {
@@ -770,17 +770,66 @@ window.showDrafts = function() {
     draftsContainer.style.transform = 'translateY(50px)';
     draftsContainer.style.opacity = '0';
     draftsContainer.style.transition = 'all 0.4s ease-out';
-    
     setTimeout(() => {
       draftsContainer.style.transform = 'translateY(0)';
       draftsContainer.style.opacity = '1';
     }, 100);
   }
-  
   // Set sidebar active state
   document.querySelectorAll('.sidebar-action-btn').forEach(btn => btn.classList.remove('active'));
   const draftsBtn = Array.from(document.querySelectorAll('.sidebar-action-btn')).find(btn => btn.textContent.includes('Thiết Kế Nháp'));
   if (draftsBtn) draftsBtn.classList.add('active');
+
+  // --- NEW: Load and render customer drafts from database ---
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const response = await fetch(`${window.API_BASE_URL}/api/my-drafts`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const drafts = await response.json();
+        const list = document.getElementById('customerDraftsList');
+        if (list) {
+          if (!drafts.length) {
+            list.innerHTML = '<p style="text-align:center;color:#8A4AF3;font-size:1.1rem;margin:32px 0;">Bạn chưa có thiết kế nháp nào.</p>';
+          } else {
+            list.innerHTML = drafts.map(draft => `
+              <div class="draft-card" style="background:#fff;border:1.5px solid #eee;border-radius:15px;padding:18px 18px 24px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px auto;max-width:340px;box-shadow:0 6px 16px rgba(90,34,212,0.10);">
+                <img src="${draft.designImage || 'resources/tshirt-model.png'}" alt="Thiết kế nháp" style="width:auto;max-width:220px;max-height:180px;display:block;margin:0 auto 12px auto;border-radius:10px;object-fit:contain;">
+                <h3 style="color:#5B22D4;font-size:18px;margin:10px 0 5px 0;">${draft.name || 'Thiết kế nháp'}</h3>
+                <p style="color:#666;font-size:14px;margin:5px 0;">Loại: ${draft.productType || ''}</p>
+                <p style="color:#666;font-size:14px;margin:5px 0;">Màu: ${draft.color || ''}</p>
+                <p style="color:#666;font-size:14px;margin:5px 0;">Giá: ${draft.price ? draft.price.toLocaleString('vi-VN') : '0'} VND</p>
+                <div style="display:flex;gap:12px;width:100%;justify-content:center;">
+                  <button onclick="window.location.href='design.html?designId=${encodeURIComponent(draft.designId)}'" style="background:#8A4AF3;color:white;border:none;border-radius:25px;padding:12px 24px;font-weight:bold;font-size:14px;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(138,74,243,0.3);">Tiếp tục thiết kế</button>
+                  <button onclick="deleteDraft('${draft.designId}')" style="background:#e74c3c;color:white;border:none;border-radius:25px;padding:12px 24px;font-weight:bold;font-size:14px;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(231,76,60,0.3);">Xóa nháp</button>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+      } else {
+        console.error('Failed to fetch drafts:', response.status);
+        const list = document.getElementById('customerDraftsList');
+        if (list) {
+          list.innerHTML = '<p style="text-align:center;color:#e74c3c;font-size:1.1rem;margin:32px 0;">Không thể tải drafts. Vui lòng thử lại sau.</p>';
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching drafts:', error);
+      const list = document.getElementById('customerDraftsList');
+      if (list) {
+        list.innerHTML = '<p style="text-align:center;color:#e74c3c;font-size:1.1rem;margin:32px 0;">Lỗi khi tải drafts.</p>';
+      }
+    }
+  } else {
+    const list = document.getElementById('customerDraftsList');
+    if (list) {
+      list.innerHTML = '<p style="text-align:center;color:#e74c3c;font-size:1.1rem;margin:32px 0;">Vui lòng đăng nhập để xem drafts.</p>';
+    }
+  }
 };
 
 // Handle change credentials form submit
@@ -817,7 +866,7 @@ if (changeCredentialsForm) {
     }
     
     try {
-      const res = await fetch('https://yours-fashion.vercel.app/api/change-credentials', {
+      const res = await fetch(`${window.API_BASE_URL}/api/change-credentials`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -848,3 +897,68 @@ if (changeCredentialsForm) {
     }
   });
 }
+
+let draftToDelete = null;
+
+window.deleteDraft = function(designId) {
+  draftToDelete = designId;
+  document.getElementById('deleteDraftModal').style.display = 'flex';
+};
+
+// Patch: Only set onclick handlers if elements exist
+const cancelDeleteDraftBtn = document.getElementById('cancelDeleteDraftBtn');
+if (cancelDeleteDraftBtn) {
+  cancelDeleteDraftBtn.onclick = function() {
+    document.getElementById('deleteDraftModal').style.display = 'none';
+    draftToDelete = null;
+  };
+}
+
+const confirmDeleteDraftBtn = document.getElementById('confirmDeleteDraftBtn');
+if (confirmDeleteDraftBtn) {
+  confirmDeleteDraftBtn.onclick = async function() {
+    if (!draftToDelete) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Vui lòng đăng nhập để thực hiện thao tác này.');
+      return;
+    }
+    try {
+      const response = await fetch(`${window.API_BASE_URL}/api/delete-draft?designId=${encodeURIComponent(draftToDelete)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      document.getElementById('deleteDraftModal').style.display = 'none';
+      draftToDelete = null;
+      if (response.ok) {
+        alert('Đã xóa thiết kế nháp thành công!');
+        showDrafts();
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Lỗi khi xóa thiết kế nháp.');
+      }
+    } catch (error) {
+      document.getElementById('deleteDraftModal').style.display = 'none';
+      draftToDelete = null;
+      alert('Lỗi kết nối server khi xóa thiết kế nháp.');
+    }
+  };
+}
+
+// Only show the drafts tab in the sidebar for customers
+window.addEventListener('DOMContentLoaded', function() {
+  const draftDropdownItem = document.getElementById('draftDropdownItem');
+  function getRoleFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role;
+    } catch (e) { return null; }
+  }
+  if (draftDropdownItem && getRoleFromToken() === 'customer') {
+    draftDropdownItem.style.display = 'block';
+  } else if (draftDropdownItem) {
+    draftDropdownItem.style.display = 'none';
+  }
+});

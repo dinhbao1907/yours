@@ -722,6 +722,28 @@
     const totalPaymentElem = document.getElementById('totalPayment');
     const placeOrderBtn = document.getElementById('placeOrderBtn');
     const SHIPPING_FEE = getSelectedShippingFee();
+    // --- Add buyNowItem check ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const isBuyNow = urlParams.get('buynow') === '1';
+    if (isBuyNow) {
+      const buyNowItem = JSON.parse(localStorage.getItem('buyNowItem') || 'null');
+      if (!buyNowItem) {
+        // Show error modal and redirect
+        const validationMessage = document.getElementById('validationMessage');
+        validationMessage.textContent = 'Không tìm thấy sản phẩm để thanh toán. Vui lòng chọn lại sản phẩm.';
+        const modal = document.getElementById('validationModal');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          window.location.href = 'all-products.html';
+        }, 2200);
+        if (productTotalElem) productTotalElem.textContent = '0 VND';
+        if (shippingFeeElem) shippingFeeElem.textContent = formatVND(SHIPPING_FEE);
+        if (totalPaymentElem) totalPaymentElem.textContent = '0 VND';
+        if (container) container.innerHTML = '';
+        if (placeOrderBtn) placeOrderBtn.disabled = true;
+        return;
+      }
+    }
     if (!checkedItems.length) {
       container.innerHTML = '<p style="text-align:center;color:#8A4AF3;font-size:1.1rem;margin:24px 0;">Không có sản phẩm nào được chọn để thanh toán.</p>';
       productTotalElem.textContent = '0 VND';
@@ -737,7 +759,7 @@
       productTotal += itemTotal;
       return `
         <div class="checkout-summary-product">
-          <img src="${item.image}" alt="${item.name}" class="checkout-summary-img">
+          <img src="${item.designImage || item.image}" alt="${item.name}" class="checkout-summary-img">
           <div class="checkout-summary-info">
             <div class="checkout-summary-title">${item.name}</div>
             <div class="checkout-summary-size">Size: ${item.size || ''}</div>
@@ -779,7 +801,10 @@
     // Add form validation for checkout button
     const placeOrderBtn = document.getElementById('placeOrderBtn');
     if (placeOrderBtn) {
+      // Log the button's disabled state on page load
+      console.log('placeOrderBtn initial disabled state:', placeOrderBtn.disabled);
       placeOrderBtn.addEventListener('click', function(e) {
+        console.log('Place order button clicked!', e, 'Disabled:', placeOrderBtn.disabled);
         e.preventDefault();
         
         // Get all required fields
@@ -831,30 +856,11 @@
         if (redirectModal) {
           redirectModal.style.display = 'flex';
         }
-        // Gather order info
-        const cartKey = (function() {
-          const username = localStorage.getItem('currentUser');
-          return username ? `cart_${username}` : 'cart_guest';
-        })();
-        let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
-        const checkedItems = cart.filter(item => item.checked);
-        
-        console.log('🛒 Cart key:', cartKey);
-        console.log('🛒 Full cart:', cart);
-        console.log('🛒 Checked items:', checkedItems);
-        
-        if (checkedItems.length === 0) {
-          console.error('❌ No checked items in cart!');
-          showPayosError('Không có sản phẩm nào được chọn. Vui lòng quay lại giỏ hàng.');
-          return;
-        }
-        // Calculate totals
+        // --- PAYOS PAYLOAD LOGIC ---
+        const isBuyNow = new URL(window.location.href).searchParams.get('buynow') === '1';
         let productTotal = 0;
-        checkedItems.forEach(item => {
-          const price = parseInt(item.price || 0, 10);
-          productTotal += price * (item.quantity || 1);
-        });
-        const shippingFee = (function() {
+        let items = [];
+        let shippingFee = (function() {
           const radios = document.getElementsByName('shipping');
           for (let radio of radios) {
             if (radio.checked) {
@@ -863,6 +869,61 @@
           }
           return 25000;
         })();
+        if (isBuyNow) {
+          const buyNowItem = JSON.parse(localStorage.getItem('buyNowItem') || 'null');
+          if (!buyNowItem) {
+            const validationMessage = document.getElementById('validationMessage');
+            validationMessage.textContent = 'Không tìm thấy sản phẩm để thanh toán. Vui lòng chọn lại sản phẩm.';
+            const modal = document.getElementById('validationModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+              window.location.href = 'all-products.html';
+            }, 2200);
+            return;
+          }
+          // --- Log buyNowItem and check required fields ---
+          console.log('🛒 buyNowItem:', buyNowItem);
+          const requiredFields = ['name', 'price', 'quantity', 'size', 'image'];
+          let missingFields = requiredFields.filter(f => !buyNowItem[f]);
+          // Accept either designId or productId
+          if (!buyNowItem.designId && !buyNowItem.productId) missingFields.push('designId/productId');
+          if (missingFields.length > 0) {
+            alert('Thiếu thông tin sản phẩm: ' + missingFields.join(', ') + '. Vui lòng thử lại.');
+            console.error('❌ buyNowItem missing fields:', missingFields, buyNowItem);
+            return;
+          }
+          productTotal = buyNowItem.price * buyNowItem.quantity;
+          items = [{
+            name: buyNowItem.name,
+            price: buyNowItem.price,
+            quantity: buyNowItem.quantity,
+            size: buyNowItem.size,
+            productId: buyNowItem.designId || buyNowItem.productId || '',
+            image: buyNowItem.image || '',
+            description: buyNowItem.description || ''
+          }];
+        } else {
+          const cartKey = (function() {
+            const username = localStorage.getItem('currentUser');
+            return username ? `cart_${username}` : 'cart_guest';
+          })();
+          let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+          const checkedItems = cart.filter(item => item.checked);
+          if (!checkedItems.length) {
+            alert('Không có sản phẩm nào được chọn để thanh toán.');
+            return;
+          }
+          productTotal = checkedItems.reduce((sum, item) => sum + (parseInt(item.price || 0, 10) * (item.quantity || 1)), 0);
+          items = checkedItems.map(item => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            productId: item.designId || '',
+            image: item.image || '',
+            description: item.description || ''
+          }));
+        }
         const amount = productTotal + shippingFee;
         // Generate a proper order code for PayOS (must be a number < 9007199254740991)
         const timestamp = Date.now() % 1000000000; // Use last 9 digits of timestamp
@@ -885,17 +946,9 @@
           returnUrl: window.location.origin + '/payment-success.html',
           orderCode,
           customer,
-          items: checkedItems.map(item => ({
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            size: item.size,
-            productId: item.designId || '',
-            image: item.image || '',
-            description: item.description || ''
-          }))
+          items
         };
-        // Call backend to get PayOS URL
+        // --- Log payload before fetch ---
         console.log('🚀 Sending PayOS request with payload:', payload);
         
         fetch('/api/create-payos-order', {
@@ -905,26 +958,38 @@
         })
         .then(res => {
           console.log('📡 PayOS response status:', res.status);
-          return res.json();
+          if (!res.ok) {
+            // Log and show error for non-200 responses
+            console.error('❌ PayOS backend returned error status:', res.status);
+            alert('Máy chủ thanh toán trả về lỗi. Vui lòng thử lại. (Mã lỗi: ' + res.status + ')');
+          }
+          return res.json().catch(err => {
+            // Log and show error for invalid JSON
+            console.error('❌ Không thể phân tích phản hồi JSON từ PayOS:', err);
+            alert('Lỗi khi nhận phản hồi từ máy chủ thanh toán. Vui lòng thử lại.');
+            throw err;
+          });
         })
         .then(data => {
           console.log('📦 PayOS response data:', data);
           if (redirectModal) redirectModal.style.display = 'none';
-          if (data.payUrl) {
+          if (data && data.payUrl) {
             console.log('✅ Redirecting to PayOS URL:', data.payUrl);
             window.location.href = data.payUrl;
           } else {
+            // Log and show error for missing payUrl
             console.error('❌ No PayOS URL in response:', data);
+            alert('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
             showPayosError('Không thể tạo liên kết thanh toán. Vui lòng thử lại.');
           }
         })
         .catch(err => {
           if (redirectModal) redirectModal.style.display = 'none';
+          // Log and show error for network or unexpected errors
           console.error('❌ PayOS error:', err);
-          
+          alert('Có lỗi khi kết nối đến máy chủ thanh toán. Vui lòng thử lại.');
           let errorMessage = 'Có lỗi khi kết nối đến máy chủ thanh toán. Vui lòng thử lại.';
-          
-          if (err.response && err.response.data) {
+          if (err && err.response && err.response.data) {
             const errorData = err.response.data;
             console.error('❌ PayOS API error response:', errorData);
             if (errorData.error) {
@@ -934,7 +999,6 @@
               console.error('❌ PayOS error details:', errorData.details);
             }
           }
-          
           showPayosError(errorMessage);
         });
 
@@ -967,3 +1031,92 @@
     }
   });
   </script>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  function getQueryParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  }
+  const isBuyNow = getQueryParam('buynow') === '1';
+  const summaryContainer = document.querySelector('.checkout-summary-products') || document.getElementById('checkoutSummaryProducts');
+  const productTotalElem = document.getElementById('summaryProductTotal');
+  const shippingFeeElem = document.getElementById('shippingFee');
+  const totalPaymentElem = document.getElementById('totalPayment');
+
+  function formatVND(num) {
+    return Number(num).toLocaleString('vi-VN') + ' VND';
+  }
+  function getShippingFee() {
+    const checked = document.querySelector('input[name="shipping"]:checked');
+    return checked && checked.value === 'Tiết kiệm' ? 15000 : 25000;
+  }
+  function updateSummary() {
+    let productTotal = 0;
+    let shippingFee = getShippingFee();
+    let grandTotal = 0;
+    if (isBuyNow) {
+      const buyNowItem = JSON.parse(localStorage.getItem('buyNowItem') || 'null');
+      if (buyNowItem && summaryContainer) {
+        summaryContainer.innerHTML = `
+          <div class="checkout-summary-product">
+            <img src="${buyNowItem.image}" class="checkout-summary-img" alt="${buyNowItem.name}">
+            <div class="checkout-summary-info">
+              <div class="checkout-summary-title">${buyNowItem.name}</div>
+              <div class="checkout-summary-size">Size: ${buyNowItem.size}</div>
+              <div class="checkout-summary-qty">Số lượng: ${buyNowItem.quantity}</div>
+              <div class="checkout-summary-price">${formatVND(buyNowItem.price)}</div>
+            </div>
+          </div>
+        `;
+        productTotal = buyNowItem.price * buyNowItem.quantity;
+      }
+    } else {
+      const cartCheckoutItems = JSON.parse(localStorage.getItem('cartCheckoutItems') || '[]');
+      if (cartCheckoutItems.length && summaryContainer) {
+        summaryContainer.innerHTML = cartCheckoutItems.map(item => `
+          <div class="checkout-summary-product">
+            <img src="${item.image}" class="checkout-summary-img" alt="${item.name}">
+            <div class="checkout-summary-info">
+              <div class="checkout-summary-title">${item.name}</div>
+              <div class="checkout-summary-size">Size: ${item.size}</div>
+              <div class="checkout-summary-qty">Số lượng: ${item.quantity}</div>
+              <div class="checkout-summary-price">${formatVND(item.price)}</div>
+            </div>
+          </div>
+        `).join('');
+        productTotal = cartCheckoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      } else if (summaryContainer) {
+        summaryContainer.innerHTML = '<p>Không có sản phẩm nào được chọn để thanh toán.</p>';
+      }
+    }
+    grandTotal = productTotal + shippingFee;
+    if (productTotalElem) productTotalElem.textContent = formatVND(productTotal);
+    if (shippingFeeElem) shippingFeeElem.textContent = formatVND(shippingFee);
+    if (totalPaymentElem) totalPaymentElem.textContent = formatVND(grandTotal);
+  }
+  // Initial render
+  updateSummary();
+  // Update on shipping method change
+  document.querySelectorAll('input[name="shipping"]').forEach(radio => {
+    radio.addEventListener('change', updateSummary);
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Autofill username from token or localStorage
+  function getUsernameFromToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.username || '';
+    } catch (e) { return ''; }
+  }
+  const username = getUsernameFromToken() || localStorage.getItem('currentUser') || '';
+  const usernameInput = document.getElementById('username');
+  if (usernameInput) {
+    usernameInput.value = username;
+  }
+});
+</script>

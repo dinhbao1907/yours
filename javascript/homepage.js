@@ -48,6 +48,12 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// Dynamic API base URL for local and production
+window.API_BASE_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://yours-fashion.vercel.app";
+
 function loadFeaturedProducts() {
   const container = document.getElementById('featured-products');
   if (!container) {
@@ -61,7 +67,7 @@ function loadFeaturedProducts() {
   
   // Start timer and fetch in parallel
   const minDelay = new Promise(resolve => setTimeout(resolve, 500));
-  const fetchDesigns = fetch('/api/designs')
+  const fetchDesigns = fetch(`${window.API_BASE_URL}/api/designs`)
     .then(response => response.json())
     .catch(() => null);
 
@@ -103,7 +109,7 @@ function loadDesignerProducts() {
   
   // Start timer and fetch in parallel
   const minDelay = new Promise(resolve => setTimeout(resolve, 500));
-  const fetchDesigns = fetch('/api/designs')
+  const fetchDesigns = fetch(`${window.API_BASE_URL}/api/designs`)
     .then(response => response.json())
     .catch(() => null);
 
