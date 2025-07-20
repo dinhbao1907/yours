@@ -629,6 +629,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'cart.html';
         return;
       }
+      
+      // Designer: Show loading animation
+      const originalText = submitButton.innerHTML;
+      submitButton.innerHTML = 'Đang đăng bài...';
+      submitButton.disabled = true;
+      submitButton.style.cursor = 'not-allowed';
+      submitButton.style.opacity = '0.7';
+      
       console.log('🚀 Submit button clicked'); // Debug log
       console.log('🔍 unsavedChanges value:', unsavedChanges); // Debug log
       
@@ -778,10 +786,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
           console.error('❌ Server error:', result);
           alert(result.message || 'Lỗi khi gửi thiết kế');
+          // Restore button state on error
+          submitButton.innerHTML = originalText;
+          submitButton.disabled = false;
+          submitButton.style.cursor = 'pointer';
+          submitButton.style.opacity = '1';
         }
       } catch (error) {
         console.error('❌ Network error:', error);
         alert('Lỗi kết nối server: ' + error.message);
+        // Restore button state on error
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+        submitButton.style.cursor = 'pointer';
+        submitButton.style.opacity = '1';
       }
     });
   } else {
@@ -1301,41 +1319,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     console.log('Token found, proceeding with draft save...'); // Debug log
     
-    // Check if all required elements exist
+    // For draft saving, we don't require all product information fields
+    // Only check if basic elements exist
     if (!productCodeInput) {
       console.error('productCodeInput not found');
       alert('Lỗi: Không tìm thấy mã sản phẩm');
       return;
     }
-    if (!productNameInput) {
-      console.error('productNameInput not found');
-      alert('Lỗi: Không tìm thấy tên sản phẩm');
-      return;
-    }
-    if (!productTypeInput) {
-      console.error('productTypeInput not found');
-      alert('Lỗi: Không tìm thấy loại sản phẩm');
-      return;
-    }
-    if (!priceInput) {
-      console.error('priceInput not found');
-      alert('Lỗi: Không tìm thấy giá sản phẩm');
-      return;
-    }
-    if (!descriptionInput) {
-      console.error('descriptionInput not found');
-      alert('Lỗi: Không tìm thấy mô tả sản phẩm');
-      return;
-    }
     
     // Use productCode as designId for new designs
     const designId = draftDesignId || productCodeInput.value;
-    const productType = productTypeInput.value;
+    const productType = productTypeInput ? productTypeInput.value : 'Áo T-shirt';
     const material = document.getElementById('material') ? document.getElementById('material').value : 'Vải Cotton';
     const color = currentColor;
-    const price = parseFloat(priceInput.dataset.raw || '0');
+    const price = priceInput ? parseFloat(priceInput.dataset.raw || '0') : 0;
     const productCode = productCodeInput.value;
-    const description = descriptionInput.value;
+    const description = descriptionInput ? descriptionInput.value : '';
     // Thu thập designElements
     const designElements = Array.from(designCanvas.querySelectorAll('.design-element-container'))
       .map(container => {
@@ -1388,7 +1387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const designData = {
       designId,
-      name: productNameInput.value,
+      name: productNameInput ? productNameInput.value : 'Thiết kế nháp',
       productType,
       material,
       color,
@@ -1635,6 +1634,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('Event details:', e); // Debug log
       e.preventDefault();
       e.stopPropagation();
+      
+      // Show loading state
+      const originalText = saveDraftButton.innerHTML;
+      saveDraftButton.innerHTML = 'Đang lưu nháp...';
+      saveDraftButton.disabled = true;
+      saveDraftButton.style.cursor = 'not-allowed';
+      saveDraftButton.style.opacity = '0.7';
+      
       console.log('Calling saveDraft function...'); // Debug log
       const token = localStorage.getItem('token');
       const role = getRoleFromToken();
@@ -1697,24 +1704,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
           console.error('Error saving customer draft:', error);
           alert('Lỗi kết nối server: ' + error.message);
+        } finally {
+          // Restore button state
+          saveDraftButton.innerHTML = originalText;
+          saveDraftButton.disabled = false;
+          saveDraftButton.style.cursor = 'pointer';
+          saveDraftButton.style.opacity = '1';
         }
         return;
       }
       // --- DESIGNER LOGIC ---
-      // Only require at least one design element or shirt color changed
-      const designElements = Array.from(document.querySelectorAll('.design-element-container'));
-      const hasDesignElement = designElements.length > 0;
-      const shirtColorChanged = currentColor !== 'white';
-      console.log('Design elements found:', designElements.length);
-      console.log('Current color:', currentColor);
-      console.log('Shirt color changed:', shirtColorChanged);
-      if (!hasDesignElement && !shirtColorChanged) {
-        alert('Bạn cần thêm ít nhất một họa tiết, ảnh, hoặc đổi màu áo để lưu nháp!');
-        return;
-      }
+      // For draft saving, no design elements or color changes are required
+      // Designers can save empty drafts to start their work
+      console.log('Saving draft - no validation required for design elements or color changes');
       console.log('Calling saveDraft function...');
-      const result = await saveDraft();
-      console.log('Save draft result:', result);
+      try {
+        const result = await saveDraft();
+        console.log('Save draft result:', result);
+      } catch (error) {
+        console.error('Error saving designer draft:', error);
+        alert('Lỗi khi lưu nháp thiết kế: ' + error.message);
+      } finally {
+        // Restore button state
+        saveDraftButton.innerHTML = originalText;
+        saveDraftButton.disabled = false;
+        saveDraftButton.style.cursor = 'pointer';
+        saveDraftButton.style.opacity = '1';
+      }
     });
     console.log('Click event listener added successfully'); // Debug log
   } else {

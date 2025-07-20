@@ -84,7 +84,7 @@ window.viewReview = function(id) {
       <div style="background:#e8f4fd;padding:12px;border-radius:8px;border-left:4px solid #7B3FF2;">
         <p style="margin:0;font-family:monospace;font-size:14px;color:#7B3FF2;">
           <strong>Design ID:</strong> 
-          <a href="product.html?designId=${review.designId}" target="_blank" style="color:#7B3FF2;text-decoration:none;border-bottom:1px dotted #7B3FF2;transition:all 0.2s ease;" onmouseover="this.style.color='#5a2fd9';this.style.borderBottomColor='#5a2fd9'" onmouseout="this.style.color='#7B3FF2';this.style.borderBottomColor='#7B3FF2'">
+          <a href="products.html?designId=${review.designId}" target="_blank" style="color:#7B3FF2;text-decoration:none;border-bottom:1px dotted #7B3FF2;transition:all 0.2s ease;" onmouseover="this.style.color='#5a2fd9';this.style.borderBottomColor='#5a2fd9'" onmouseout="this.style.color='#7B3FF2';this.style.borderBottomColor='#7B3FF2'">
             ${review.designId} 🔗
           </a>
         </p>
@@ -3364,7 +3364,7 @@ function renderReviewsTable(reviews) {
         <td><span style="color:#FFC107;font-size:20px;">${stars}</span> <span style="color:#666;font-size:14px;">(${review.rating}/5)</span></td>
         <td style="max-width:200px;white-space:pre-line;font-size:14px;" title="${review.feedback}">${shortFeedback}</td>
         <td>
-          <a href="product.html?designId=${review.designId}" target="_blank" style="background:#f8f9fa;padding:4px 8px;border-radius:4px;font-size:12px;text-decoration:none;color:#7B3FF2;font-family:monospace;border:1px solid #e9ecef;transition:all 0.2s ease;" onmouseover="this.style.background='#e9ecef';this.style.color='#5a2fd9'" onmouseout="this.style.background='#f8f9fa';this.style.color='#7B3FF2'">
+          <a href="products.html?designId=${review.designId}" target="_blank" style="background:#f8f9fa;padding:4px 8px;border-radius:4px;font-size:12px;text-decoration:none;color:#7B3FF2;font-family:monospace;border:1px solid #e9ecef;transition:all 0.2s ease;" onmouseover="this.style.background='#e9ecef';this.style.color='#5a2fd9'" onmouseout="this.style.background='#f8f9fa';this.style.color='#7B3FF2'">
             🔗 ${review.designId}
           </a>
         </td>
