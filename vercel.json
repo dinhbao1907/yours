@@ -9,11 +9,36 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/server.js", "headers": { "Access-Control-Allow-Origin": "*" } },
-    { "src": "/css/(.*)", "dest": "/css/$1" },
-    { "src": "/javascript/(.*)", "dest": "/javascript/$1" },
-    { "src": "/resources/(.*)", "dest": "/resources/$1" },
-    { "src": "/(.*\\.html)", "dest": "/$1" },
+    { "src": "/css/(.*)", "dest": "/css/$1", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    { "src": "/javascript/(.*)", "dest": "/javascript/$1", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    { "src": "/resources/(.*)", "dest": "/resources/$1", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
+    { "src": "/(.*\\.html)", "dest": "/$1", "headers": { "Cache-Control": "public, max-age=3600" } },
+    { "src": "/robots.txt", "dest": "/robots.txt", "headers": { "Content-Type": "text/plain" } },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml", "headers": { "Content-Type": "application/xml" } },
     { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
   ],
   "env": {
     "NODE_ENV": "production"
