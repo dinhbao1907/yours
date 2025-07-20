@@ -1035,6 +1035,40 @@
       color: #e74c3c !important;
     }
 
+    /* Reviews table styling */
+    .reviews-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 16px; 
+    }
+    .reviews-table th, .reviews-table td { 
+      padding: 12px 8px; 
+      border-bottom: 1px solid #eee; 
+      text-align: left; 
+      vertical-align: middle;
+    }
+    .reviews-table th { 
+      color: #7B3FF2; 
+      font-weight: 600; 
+      background: #f8f9fa; 
+      position: sticky; 
+      top: 0; 
+      z-index: 10;
+    }
+    .reviews-table tr:hover { 
+      background: #f8f9fa; 
+    }
+    .reviews-table tr {
+      transition: all 0.3s ease;
+    }
+    .reviews-table .action-btn {
+      transition: all 0.3s ease;
+    }
+    .reviews-table .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
   </style>
 </head>
 <body>
@@ -1185,11 +1219,11 @@
                 <tr>
                   <th>Avatar</th>
                   <th>Username</th>
-                  <th>Rating</th>
-                  <th>Feedback</th>
-                  <th>Design ID</th>
-                  <th>Date</th>
-                  <th>Actions</th>
+                  <th>Đánh Giá</th>
+                  <th>Nội Dung</th>
+                  <th>Mã Thiết Kế</th>
+                  <th>Ngày</th>
+                  <th>Hành Động</th>
                 </tr>
               </thead>
               <tbody>
@@ -1733,6 +1767,15 @@
         <button type="submit" style="padding:8px 20px;border-radius:8px;border:none;background:#4CAF50;color:#fff;cursor:pointer;">Xác nhận</button>
       </div>
     </form>
+  </div>
+
+  <!-- Review Details Modal -->
+  <div id="reviewDetailsModal" style="display:none;position:fixed;z-index:10001;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;">
+    <div style="background:#fff;padding:32px;border-radius:16px;width:500px;max-width:90vw;box-shadow:0 4px 32px rgba(0,0,0,0.2);position:relative;max-height:90vh;overflow-y:auto;">
+      <span id="closeReviewDetailsModal" style="position:absolute;top:12px;right:20px;font-size:32px;color:#7B3FF2;cursor:pointer;font-weight:bold;">&times;</span>
+      <h2 style="margin:0 0 24px 0;color:#7B3FF2;text-align:center;">Chi tiết đánh giá</h2>
+      <div id="reviewDetailsContent"></div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

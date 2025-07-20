@@ -11,6 +11,143 @@ window.API_BASE_URL =
 window._revenueChartInstance = null;
 window._countsChartInstance = null;
 
+// Update all fetch calls to include admin token
+function getAuthHeaders() {
+  const adminToken = localStorage.getItem('adminToken');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${adminToken}`
+  };
+}
+
+// Global functions for review management
+window.viewReview = function(id) {
+  console.log('[DEBUG] viewReview called with id:', id);
+  console.log('[DEBUG] window._allReviews:', window._allReviews);
+  
+  const reviews = window._allReviews || [];
+  const review = reviews.find(r => (r._id || r.id) === id);
+  
+  console.log('[DEBUG] Found review:', review);
+  
+  if (!review) {
+    console.error('[DEBUG] Review not found for id:', id);
+    alert('Không tìm thấy đánh giá');
+    return;
+  }
+  
+  const avatar = review.avatar || 'resources/user-circle.png';
+  const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+  const date = new Date(review.createdAt).toLocaleDateString('vi-VN');
+  const time = new Date(review.createdAt).toLocaleTimeString('vi-VN');
+  
+  console.log('[DEBUG] Modal elements:', {
+    modal: document.getElementById('reviewDetailsModal'),
+    content: document.getElementById('reviewDetailsContent')
+  });
+  
+  const modal = document.getElementById('reviewDetailsModal');
+  const contentDiv = document.getElementById('reviewDetailsContent');
+  
+  if (!modal || !contentDiv) {
+    console.error('[DEBUG] Modal elements not found');
+    alert('Không thể hiển thị modal');
+    return;
+  }
+  
+  contentDiv.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #eee;">
+      <img src="${avatar}" alt="Avatar" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #7B3FF2;">
+      <div>
+        <h3 style="margin:0;color:#333;font-size:18px;">${review.username}</h3>
+        <p style="margin:4px 0;color:#666;font-size:14px;">Đánh giá vào ${date} lúc ${time}</p>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+      <h4 style="margin:0 0 8px 0;color:#7B3FF2;">Đánh giá</h4>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="color:#FFC107;font-size:24px;">${stars}</span>
+        <span style="color:#666;font-size:16px;font-weight:600;">${review.rating}/5 sao</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+      <h4 style="margin:0 0 8px 0;color:#7B3FF2;">Phản hồi</h4>
+      <div style="background:#f8f9fa;padding:16px;border-radius:8px;border-left:4px solid #7B3FF2;white-space:pre-line;line-height:1.6;">
+        ${review.feedback}
+      </div>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+      <h4 style="margin:0 0 8px 0;color:#7B3FF2;">Thông tin thiết kế</h4>
+      <div style="background:#e8f4fd;padding:12px;border-radius:8px;border-left:4px solid #7B3FF2;">
+        <p style="margin:0;font-family:monospace;font-size:14px;color:#7B3FF2;">
+          <strong>Design ID:</strong> 
+          <a href="product.html?designId=${review.designId}" target="_blank" style="color:#7B3FF2;text-decoration:none;border-bottom:1px dotted #7B3FF2;transition:all 0.2s ease;" onmouseover="this.style.color='#5a2fd9';this.style.borderBottomColor='#5a2fd9'" onmouseout="this.style.color='#7B3FF2';this.style.borderBottomColor='#7B3FF2'">
+            ${review.designId} 🔗
+          </a>
+        </p>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;">
+      <button onclick="deleteReview('${review._id || review.id}')" style="background:#e74c3c;color:#fff;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+        🗑️ Xóa đánh giá
+      </button>
+    </div>
+  `;
+  
+  console.log('[DEBUG] Showing modal');
+  modal.style.display = 'flex';
+  
+  // Setup modal close functionality
+  const closeBtn = document.getElementById('closeReviewDetailsModal');
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      console.log('[DEBUG] Closing modal');
+      modal.style.display = 'none';
+    };
+  }
+  
+  // Close modal when clicking outside
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      console.log('[DEBUG] Closing modal (outside click)');
+      modal.style.display = 'none';
+    }
+  };
+};
+
+window.deleteReview = async function(id) {
+  console.log('[DEBUG] deleteReview called with id:', id);
+  if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
+  try {
+    console.log('[DEBUG] Making delete request to:', `${window.API_BASE_URL}/api/admin/reviews/${id}`);
+    console.log('[DEBUG] Auth headers:', getAuthHeaders());
+    
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    console.log('[DEBUG] Delete response status:', res.status);
+    console.log('[DEBUG] Delete response ok:', res.ok);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[DEBUG] Delete error response:', errorText);
+      throw new Error(`Xóa đánh giá thất bại: ${res.status} ${errorText}`);
+    }
+    
+    alert('Đã xóa đánh giá thành công');
+    loadReviews();
+  } catch (error) {
+    console.error('[DEBUG] Delete review error:', error);
+    alert('Có lỗi khi xóa đánh giá: ' + error.message);
+  }
+};
+
 // Check admin authentication
 function checkAdminAuth() {
   const adminToken = localStorage.getItem('adminToken');
@@ -56,15 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   loadDashboard();
 });
-
-// Update all fetch calls to include admin token
-function getAuthHeaders() {
-  const adminToken = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${adminToken}`
-  };
-}
 
 // Helper: format currency
 function formatVND(amount) {
@@ -1632,12 +1760,16 @@ function showSidebarTab(tab) {
   const content = document.getElementById('sidebarContent-' + tab);
   if (content) content.style.display = 'block';
   // Set active class on sidebar link
-  const link = document.getElementById('sidebar-link-' + tab);
+  const link = document.getElementById('sidebar-' + tab);
   if (link) link.classList.add('active');
-  // Special: load withdrawals if thanh-toan-designer tab
+  
+  // Load specific data based on tab
   if (tab === 'thanh-toan-designer') {
     console.log('[DEBUG] Calling loadWithdrawals() for thanh-toan-designer tab');
     if (typeof loadWithdrawals === 'function') loadWithdrawals();
+  } else if (tab === 'danh-gia') {
+    console.log('[DEBUG] Calling loadReviews() for danh-gia tab');
+    if (typeof loadReviews === 'function') loadReviews();
   }
 }
 
@@ -2938,25 +3070,7 @@ function setupWithdrawalFilters() {
   }
 }
 
-// Update showSidebarTab to animate main-content on every tab switch
-function showSidebarTab(tab) {
-  console.log('[DEBUG] showSidebarTab called with:', tab);
-  // Hide all tab contents
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  // Remove active class from all sidebar links
-  document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
-  // Show the selected tab
-  const content = document.getElementById('sidebarContent-' + tab);
-  if (content) content.style.display = 'block';
-  // Set active class on sidebar link
-  const link = document.getElementById('sidebar-link-' + tab);
-  if (link) link.classList.add('active');
-  // Special: load withdrawals if thanh-toan-designer tab
-  if (tab === 'thanh-toan-designer') {
-    console.log('[DEBUG] Calling loadWithdrawals() for thanh-toan-designer tab');
-    if (typeof loadWithdrawals === 'function') loadWithdrawals();
-  }
-}
+// Helper to convert file to base64
 
 // Helper to convert file to base64
 function toBase64(file) {
@@ -3199,17 +3313,33 @@ async function loadDashboard() {
 // ===== REVIEWS MANAGEMENT FUNCTIONS =====
 async function loadReviews() {
   try {
+    console.log('[DEBUG] Loading reviews...');
+    console.log('[DEBUG] API URL:', `${window.API_BASE_URL}/api/admin/reviews`);
+    console.log('[DEBUG] Auth headers:', getAuthHeaders());
+    
     const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews`, {
       headers: getAuthHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch reviews');
+    
+    console.log('[DEBUG] Response status:', res.status);
+    console.log('[DEBUG] Response ok:', res.ok);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[DEBUG] Error response:', errorText);
+      throw new Error(`Failed to fetch reviews: ${res.status} ${errorText}`);
+    }
+    
     const reviews = await res.json();
+    console.log('[DEBUG] Reviews loaded:', reviews);
+    console.log('[DEBUG] Reviews count:', reviews.length);
+    
     window._allReviews = reviews; // Store for filtering
     renderReviewsTable(reviews);
   } catch (error) {
     console.error('Error loading reviews:', error);
     const tbody = document.querySelector('#reviewsTable tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#e74c3c;">Có lỗi xảy ra khi tải đánh giá</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#e74c3c;">Có lỗi xảy ra khi tải đánh giá: ' + error.message + '</td></tr>';
   }
 }
 
@@ -3217,53 +3347,49 @@ function renderReviewsTable(reviews) {
   const tbody = document.querySelector('#reviewsTable tbody');
   if (!tbody) return;
   if (!reviews || reviews.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#666;">Chưa có đánh giá nào</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#666;padding:40px;">Chưa có đánh giá nào</td></tr>';
     return;
   }
-  tbody.innerHTML = reviews.map(review => {
+  
+  tbody.innerHTML = reviews.map((review, index) => {
     const avatar = review.avatar || 'resources/user-circle.png';
     const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
     const date = new Date(review.createdAt).toLocaleDateString('vi-VN');
+    const shortFeedback = review.feedback.length > 50 ? review.feedback.substring(0, 50) + '...' : review.feedback;
+    
     return `
-      <tr>
-        <td><img src="${avatar}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"></td>
-        <td>${review.username}</td>
-        <td><span style="color:#FFC107;font-size:18px;">${stars}</span> (${review.rating})</td>
-        <td style="max-width:260px;white-space:pre-line;">${review.feedback}</td>
-        <td>${review.designId}</td>
+      <tr style="animation-delay: ${index * 0.1}s; opacity: 0; transform: translateY(20px); transition: all 0.4s ease-out;">
+        <td><img src="${avatar}" alt="Avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eee;"></td>
+        <td><strong>${review.username}</strong></td>
+        <td><span style="color:#FFC107;font-size:20px;">${stars}</span> <span style="color:#666;font-size:14px;">(${review.rating}/5)</span></td>
+        <td style="max-width:200px;white-space:pre-line;font-size:14px;" title="${review.feedback}">${shortFeedback}</td>
+        <td>
+          <a href="product.html?designId=${review.designId}" target="_blank" style="background:#f8f9fa;padding:4px 8px;border-radius:4px;font-size:12px;text-decoration:none;color:#7B3FF2;font-family:monospace;border:1px solid #e9ecef;transition:all 0.2s ease;" onmouseover="this.style.background='#e9ecef';this.style.color='#5a2fd9'" onmouseout="this.style.background='#f8f9fa';this.style.color='#7B3FF2'">
+            🔗 ${review.designId}
+          </a>
+        </td>
         <td>${date}</td>
         <td>
-          <button class="action-btn" style="background:#7B3FF2;color:#fff;" onclick="viewReview('${review._id || review.id}')">Xem</button>
-          <button class="action-btn" style="background:#e74c3c;color:#fff;" onclick="deleteReview('${review._id || review.id}')">Xóa</button>
+          <button class="action-btn" style="background:#7B3FF2;color:#fff;padding:6px 12px;font-size:12px;" onclick="viewReview('${review._id || review.id}')">👁️ Xem</button>
+          <button class="action-btn" style="background:#e74c3c;color:#fff;padding:6px 12px;font-size:12px;" onclick="deleteReview('${review._id || review.id}')">🗑️ Xóa</button>
         </td>
       </tr>
     `;
   }).join('');
+  
+  // Trigger animations after rendering
+  setTimeout(() => {
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach((row, index) => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+  }, 100);
 }
 
-// View review (simple alert for now, can be modal)
-window.viewReview = function(id) {
-  const reviews = window._allReviews || [];
-  const review = reviews.find(r => (r._id || r.id) === id);
-  if (!review) return alert('Không tìm thấy đánh giá');
-  alert(`Đánh giá của ${review.username}\n\nRating: ${review.rating}\n\n${review.feedback}`);
-};
-
-// Delete review
-window.deleteReview = async function(id) {
-  if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
-  try {
-    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) throw new Error('Xóa đánh giá thất bại');
-    alert('Đã xóa đánh giá thành công');
-    loadReviews();
-  } catch (error) {
-    alert('Có lỗi khi xóa đánh giá');
-  }
-};
+// Remove duplicate function definitions - they are now at the top of the file
 
 // Filter reviews by username or feedback
 window.addEventListener('DOMContentLoaded', () => {
@@ -3285,43 +3411,4 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Patch showSidebarTab to load reviews when danh-gia tab is shown
-const originalShowSidebarTab = window.showSidebarTab || showSidebarTab;
-window.showSidebarTab = function(tab) {
-  originalShowSidebarTab(tab);
-  if (tab === 'danh-gia') {
-    loadReviews();
-  }
-};
 // ===== END REVIEWS MANAGEMENT FUNCTIONS =====
-
-// ... existing code ...
-// ===== REVIEWS MANAGEMENT FUNCTIONS =====
-async function loadReviews() {
-  try {
-    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews`, {
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) throw new Error('Failed to fetch reviews');
-    const reviews = await res.json();
-    window._allReviews = reviews; // Store for filtering
-    renderReviewsTable(reviews);
-  } catch (error) {
-    console.error('Error loading reviews:', error);
-    const tbody = document.querySelector('#reviewsTable tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#e74c3c;">Có lỗi xảy ra khi tải đánh giá</td></tr>';
-  }
-}
-// ... existing code ...
-// Remove duplicate declaration of originalShowSidebarTab
-// Only keep this patch ONCE at the end of the reviews logic
-if (!window._originalShowSidebarTab) {
-  window._originalShowSidebarTab = window.showSidebarTab || showSidebarTab;
-  window.showSidebarTab = function(tab) {
-    window._originalShowSidebarTab(tab);
-    if (tab === 'danh-gia') {
-      loadReviews();
-    }
-  };
-}
-// ... existing code ...

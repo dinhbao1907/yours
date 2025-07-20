@@ -3747,4 +3747,21 @@ app.get('/api/admin/reviews', adminAuthMiddleware, async (req, res) => {
   }
 });
 
+// API: Delete a review (admin dashboard)
+app.delete('/api/admin/reviews/:id', adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const review = await Review.findByIdAndDelete(id);
+    
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+    
+    res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = app;
