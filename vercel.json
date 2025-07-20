@@ -5,7 +5,8 @@
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "css/**", "use": "@vercel/static" },
     { "src": "javascript/**", "use": "@vercel/static" },
-    { "src": "resources/**", "use": "@vercel/static" }
+    { "src": "resources/**", "use": "@vercel/static" },
+    { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/server.js", "headers": { "Access-Control-Allow-Origin": "*" } },
@@ -14,7 +15,7 @@
     { "src": "/resources/(.*)", "dest": "/resources/$1", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
     { "src": "/(.*\\.html)", "dest": "/$1", "headers": { "Cache-Control": "public, max-age=3600" } },
     { "src": "/robots.txt", "dest": "/robots.txt", "headers": { "Content-Type": "text/plain" } },
-    { "src": "/sitemap.xml", "dest": "/sitemap.xml", "headers": { "Content-Type": "application/xml" } },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml", "headers": { "Content-Type": "application/xml; charset=utf-8" } },
     { "src": "/(.*)", "dest": "/index.html", "headers": {
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",

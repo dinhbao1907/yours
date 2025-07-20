@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://yoursfashion.id.vn/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /.vercel/
+
+# Allow important pages
+Allow: /index.html
+Allow: /about.html
+Allow: /all-products.html
+Allow: /design.html
+Allow: /cart.html
+Allow: /checkout.html
+Allow: /user-profile.html
+Allow: /designer-store.html
+Allow: /designer-shop.html
+Allow: /products.html
+
+# Allow static resources
+Allow: /css/
+Allow: /javascript/
+Allow: /resources/ 
