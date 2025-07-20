@@ -48,28 +48,12 @@ function adminLogout() {
   }
 }
 
-// Add logout button to sidebar
-function addLogoutButton() {
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    const logoutBtn = document.createElement('button');
-    logoutBtn.className = 'action-btn';
-    logoutBtn.style.cssText = 'margin: 24px; background: #e74c3c; color: white; width: calc(100% - 48px);';
-    logoutBtn.textContent = 'Đăng xuất';
-    logoutBtn.onclick = adminLogout;
-    
-    // Add to the bottom of sidebar
-    sidebar.appendChild(logoutBtn);
-  }
-}
-
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', function() {
   if (!checkAdminAuth()) {
     return;
   }
   
-  addLogoutButton();
   loadDashboard();
 });
 
@@ -3211,3 +3195,133 @@ async function loadDashboard() {
   await createDemoNotification();
   await loadDashboardGraphs(); // NEW
 }
+
+// ===== REVIEWS MANAGEMENT FUNCTIONS =====
+async function loadReviews() {
+  try {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch reviews');
+    const reviews = await res.json();
+    window._allReviews = reviews; // Store for filtering
+    renderReviewsTable(reviews);
+  } catch (error) {
+    console.error('Error loading reviews:', error);
+    const tbody = document.querySelector('#reviewsTable tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#e74c3c;">Có lỗi xảy ra khi tải đánh giá</td></tr>';
+  }
+}
+
+function renderReviewsTable(reviews) {
+  const tbody = document.querySelector('#reviewsTable tbody');
+  if (!tbody) return;
+  if (!reviews || reviews.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#666;">Chưa có đánh giá nào</td></tr>';
+    return;
+  }
+  tbody.innerHTML = reviews.map(review => {
+    const avatar = review.avatar || 'resources/user-circle.png';
+    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const date = new Date(review.createdAt).toLocaleDateString('vi-VN');
+    return `
+      <tr>
+        <td><img src="${avatar}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"></td>
+        <td>${review.username}</td>
+        <td><span style="color:#FFC107;font-size:18px;">${stars}</span> (${review.rating})</td>
+        <td style="max-width:260px;white-space:pre-line;">${review.feedback}</td>
+        <td>${review.designId}</td>
+        <td>${date}</td>
+        <td>
+          <button class="action-btn" style="background:#7B3FF2;color:#fff;" onclick="viewReview('${review._id || review.id}')">Xem</button>
+          <button class="action-btn" style="background:#e74c3c;color:#fff;" onclick="deleteReview('${review._id || review.id}')">Xóa</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// View review (simple alert for now, can be modal)
+window.viewReview = function(id) {
+  const reviews = window._allReviews || [];
+  const review = reviews.find(r => (r._id || r.id) === id);
+  if (!review) return alert('Không tìm thấy đánh giá');
+  alert(`Đánh giá của ${review.username}\n\nRating: ${review.rating}\n\n${review.feedback}`);
+};
+
+// Delete review
+window.deleteReview = async function(id) {
+  if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
+  try {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Xóa đánh giá thất bại');
+    alert('Đã xóa đánh giá thành công');
+    loadReviews();
+  } catch (error) {
+    alert('Có lỗi khi xóa đánh giá');
+  }
+};
+
+// Filter reviews by username or feedback
+window.addEventListener('DOMContentLoaded', () => {
+  const reviewsTable = document.getElementById('reviewsTable');
+  if (!reviewsTable) return;
+  // Add a search box above the table
+  const searchBox = document.createElement('input');
+  searchBox.type = 'text';
+  searchBox.placeholder = 'Tìm kiếm đánh giá...';
+  searchBox.style = 'margin-bottom:12px;padding:8px 16px;border-radius:8px;border:1px solid #eee;width:100%;max-width:320px;';
+  reviewsTable.parentNode.insertBefore(searchBox, reviewsTable);
+  searchBox.addEventListener('input', function() {
+    const val = this.value.trim().toLowerCase();
+    const filtered = (window._allReviews || []).filter(r =>
+      (r.username && r.username.toLowerCase().includes(val)) ||
+      (r.feedback && r.feedback.toLowerCase().includes(val))
+    );
+    renderReviewsTable(filtered);
+  });
+});
+
+// Patch showSidebarTab to load reviews when danh-gia tab is shown
+const originalShowSidebarTab = window.showSidebarTab || showSidebarTab;
+window.showSidebarTab = function(tab) {
+  originalShowSidebarTab(tab);
+  if (tab === 'danh-gia') {
+    loadReviews();
+  }
+};
+// ===== END REVIEWS MANAGEMENT FUNCTIONS =====
+
+// ... existing code ...
+// ===== REVIEWS MANAGEMENT FUNCTIONS =====
+async function loadReviews() {
+  try {
+    const res = await fetch(`${window.API_BASE_URL}/api/admin/reviews`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch reviews');
+    const reviews = await res.json();
+    window._allReviews = reviews; // Store for filtering
+    renderReviewsTable(reviews);
+  } catch (error) {
+    console.error('Error loading reviews:', error);
+    const tbody = document.querySelector('#reviewsTable tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#e74c3c;">Có lỗi xảy ra khi tải đánh giá</td></tr>';
+  }
+}
+// ... existing code ...
+// Remove duplicate declaration of originalShowSidebarTab
+// Only keep this patch ONCE at the end of the reviews logic
+if (!window._originalShowSidebarTab) {
+  window._originalShowSidebarTab = window.showSidebarTab || showSidebarTab;
+  window.showSidebarTab = function(tab) {
+    window._originalShowSidebarTab(tab);
+    if (tab === 'danh-gia') {
+      loadReviews();
+    }
+  };
+}
+// ... existing code ...

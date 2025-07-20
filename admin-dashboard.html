@@ -35,11 +35,59 @@
     .product-info { flex: 1; }
     .product-name { font-weight: 600; }
     .product-price { color: #8A4AF3; font-weight: 700; }
-    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 200px; background: #fff; border-right: 1px solid #eee; padding: 32px 0; }
-    .sidebar ul { list-style: none; padding: 0; }
-    .sidebar li { margin-bottom: 18px; }
-    .sidebar a { color: #7B3FF2; font-weight: 600; text-decoration: none; padding: 8px 24px; display: block; border-radius: 8px; }
-    .sidebar a.active, .sidebar a:hover { background: #f0eafd; }
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      bottom: 0; 
+      width: 200px; 
+      background: #fff; 
+      border-right: 1px solid #eee; 
+      padding: 0; 
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-header { 
+      padding: 20px; 
+      text-align: center; 
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+    .sidebar ul { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0;
+      flex: 1;
+    }
+    .sidebar li { 
+      margin-bottom: 18px; 
+    }
+    .sidebar a { 
+      color: #7B3FF2; 
+      font-weight: 600; 
+      text-decoration: none; 
+      padding: 8px 24px; 
+      display: block; 
+      border-radius: 8px; 
+    }
+    .sidebar a.active, .sidebar a:hover { 
+      background: #f0eafd; 
+    }
+    .sidebar .logout-btn {
+      margin: 12px 24px 24px 24px;
+      background: #e74c3c;
+      color: white;
+      width: calc(100% - 48px);
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .sidebar .logout-btn:hover {
+      background: #c0392b;
+    }
     .main-content { margin-left: 220px; }
     
     /* Designer table styling */
@@ -998,6 +1046,7 @@
     <ul>
       <li><a href="#" id="sidebar-dashboard" class="sidebar-link active" onclick="showSidebarTab('dashboard')">Dashboard</a></li>
       <li><a href="#" id="sidebar-don-hang" class="sidebar-link" onclick="showSidebarTab('don-hang')">Đơn hàng</a></li>
+      <li><a href="#" id="sidebar-danh-gia" class="sidebar-link" onclick="showSidebarTab('danh-gia')">Đánh giá</a></li>
       <li><a href="#" id="sidebar-thiet-ke" class="sidebar-link" onclick="showSidebarTab('thiet-ke')">Thiết kế</a></li>
       <li><a href="#" id="sidebar-khach-hang" class="sidebar-link" onclick="showSidebarTab('khach-hang')">Khách hàng</a></li>
       <li><a href="#" id="sidebar-designer" class="sidebar-link" onclick="showSidebarTab('designer')">Designer</a></li>
@@ -1005,6 +1054,7 @@
       <li><a href="#" id="sidebar-thong-bao" class="sidebar-link" onclick="showSidebarTab('thong-bao')">Thông báo</a></li>
       <li><a href="#" id="sidebar-cai-dat" class="sidebar-link" onclick="showSidebarTab('cai-dat')">Cài đặt</a></li>
     </ul>
+    <button class="logout-btn" onclick="adminLogout()">Đăng xuất</button>
   </div>
   <div class="main-content">
     <div class="dashboard-container">
@@ -1122,6 +1172,31 @@
                 </tbody>
               </table>
             </div>
+        </div>
+      </div>
+      <div id="sidebarContent-danh-gia" class="tab-content" style="display:none;">
+        <div class="dashboard-section">
+          <div style="font-weight:600; color:#7B3FF2; margin-bottom:8px; font-size:18px; background:#fffbe6; border-left:5px solid #ffb300; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+            <span>Quản lý Đánh giá</span>
+          </div>
+          <div class="table-responsive">
+            <table class="reviews-table" id="reviewsTable" style="width:100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Username</th>
+                  <th>Rating</th>
+                  <th>Feedback</th>
+                  <th>Design ID</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Reviews will be dynamically inserted here -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div id="sidebarContent-thiet-ke" class="tab-content" style="display:none;">
@@ -1375,6 +1450,31 @@
             <button type="submit" style="padding:8px 20px;border-radius:8px;border:none;background:#e74c3c;color:#fff;cursor:pointer;">Từ chối</button>
           </div>
         </form>
+      </div>
+      <div id="sidebarContent-danh-gia" class="tab-content" style="display:none;">
+        <div class="dashboard-section">
+          <div style="font-weight:600; color:#7B3FF2; margin-bottom:8px; font-size:18px; background:#fffbe6; border-left:5px solid #ffb300; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+            <span>Quản lý Đánh giá</span>
+          </div>
+          <div class="table-responsive">
+            <table class="reviews-table" id="reviewsTable" style="width:100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Username</th>
+                  <th>Rating</th>
+                  <th>Feedback</th>
+                  <th>Design ID</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Reviews will be dynamically inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
