@@ -39,7 +39,7 @@ window.API_BASE_URL =
 function showSpinner(show) {
   document.getElementById('spinner-overlay').style.display = show ? 'flex' : 'none';
 }
-function showNotification(message, type = 'error') {
+function showNotification(message, type = 'success') {
   let box = document.querySelector('.notification-box');
   if (!box) {
     box = document.createElement('div');
@@ -62,7 +62,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   // Username validation: at least 6 chars, only letters and numbers
   if (!/^[A-Za-z0-9]{6,}$/.test(username)) {
     showSpinner(false);
-    showNotification('Tên đăng nhập phải có ít nhất 6 ký tự, chỉ bao gồm chữ cái và số.');
+    showNotification('Tên đăng nhập phải có ít nhất 6 ký tự, chỉ bao gồm chữ cái và số.', 'error');
     return;
   }
   try {
@@ -86,7 +86,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       document.getElementById('verification-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentEmail) {
-          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.');
+          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.', 'error');
           return;
         }
         const verificationCode = document.getElementById('verificationCode').value;
@@ -113,12 +113,12 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             setTimeout(() => verifyBox.remove(), 1500);
           }
         } catch (error) {
-          showNotification('Lỗi: ' + error.message);
+          showNotification('Lỗi: ' + error.message, 'error');
         }
       });
       window.resendVerificationCode = async () => {
         if (!currentEmail) {
-          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.');
+          showNotification('Không tìm thấy email của tài khoản. Vui lòng đăng ký lại.', 'error');
           return;
         }
         const requestBody = { email: currentEmail };
@@ -131,7 +131,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
           const data = await response.json();
           showNotification(data.message, response.ok ? 'success' : 'error');
         } catch (error) {
-          showNotification('Lỗi: ' + error.message);
+          showNotification('Lỗi: ' + error.message, 'error');
         }
       };
     } else {
@@ -139,6 +139,6 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     }
   } catch (error) {
     showSpinner(false);
-    showNotification('Lỗi: ' + error.message);
+    showNotification('Lỗi: ' + error.message, 'error');
   }
 });
