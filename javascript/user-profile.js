@@ -241,7 +241,24 @@ async function loadOrderHistory() {
   const token = localStorage.getItem('token');
   const orderHistoryContainer = document.getElementById('orderHistoryContainer');
   if (!orderHistoryContainer) return;
-  
+
+  // Fetch all reviews for this user
+  let reviews = [];
+  try {
+    const username = getUsernameFromToken() || localStorage.getItem('currentUser');
+    const res = await fetch(`${window.API_BASE_URL}/api/user-reviews?username=${encodeURIComponent(username)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      reviews = await res.json();
+      window._existingReviews = reviews;
+    } else {
+      window._existingReviews = [];
+    }
+  } catch (e) {
+    window._existingReviews = [];
+  }
+
   // Show loading skeleton
   orderHistoryContainer.innerHTML = `
     <h2 style="color:#5B22D4;text-align:center;margin-bottom:24px;">Lịch Sử Đơn Hàng</h2>
@@ -332,7 +349,7 @@ function renderOrderHistory(orders) {
       
       if (canReview && itemDesignId) {
         if (hasReviewed) {
-          html += `<button class="review-btn" disabled style="background:#28a745;cursor:default;">Đã đánh giá</button>`;
+          html += `<button class="review-btn view-review-btn" data-design-id="${itemDesignId}" style="background:#28a745;">Đã đánh giá</button>`;
         } else {
           html += `<button class="review-btn bounce-in" data-design-id="${itemDesignId}">Đánh giá sản phẩm</button>`;
         }
@@ -595,14 +612,12 @@ function openReviewModal(designId) {
           console.log('Review submission response data:', data);
           
           if (response.ok) {
-            alert('Cảm ơn bạn đã gửi đánh giá!');
+            showThankYouPopup();
             document.getElementById('reviewForm').reset();
             stars.forEach(s => s.classList.remove('selected'));
             closeReviewModal();
-            // Refresh reviews and order history immediately
-            await loadReviews(designId);
-            await loadOrderHistory();
-            // Trigger storage event for other tabs
+            try { await loadReviews(designId); } catch (e) { console.error(e); }
+            try { await loadOrderHistory(); } catch (e) { console.error(e); }
             localStorage.setItem('review_update', JSON.stringify({ designId, timestamp: Date.now() }));
           } else {
             alert(data.message || 'Lỗi khi gửi đánh giá!');
@@ -632,7 +647,7 @@ function closeReviewModal() {
 
 // Helper to extract username from JWT token
 function getUsernameFromToken() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -700,6 +715,89 @@ function attachReviewButtons() {
       };
     }
   });
+}
+
+// Add modal for viewing review
+if (!document.getElementById('viewReviewModal')) {
+  const viewModal = document.createElement('div');
+  viewModal.id = 'viewReviewModal';
+  viewModal.className = 'review-modal';
+  viewModal.innerHTML = `
+    <div class="review-modal-content">
+      <div class="review-modal-header">
+        <h3>Xem Đánh Giá Của Bạn</h3>
+        <span class="close-review-modal" id="closeViewReviewModal">&times;</span>
+      </div>
+      <div class="review-modal-body" id="viewReviewBody"></div>
+    </div>
+  `;
+  document.body.appendChild(viewModal);
+}
+
+// Attach event listeners for view review buttons
+function attachReviewButtons() {
+  console.log('Attaching review buttons...');
+  const reviewButtons = document.querySelectorAll('.review-btn');
+  console.log('Found', reviewButtons.length, 'review buttons');
+  
+  reviewButtons.forEach(btn => {
+    if (!btn.disabled) {
+      btn.onclick = function() {
+        const designId = btn.getAttribute('data-design-id');
+        console.log('Review button clicked for designId:', designId);
+        openReviewModal(designId);
+      };
+    }
+  });
+  // Add view review button logic
+  document.querySelectorAll('.view-review-btn').forEach(btn => {
+    btn.onclick = function() {
+      const designId = btn.getAttribute('data-design-id');
+      showViewReviewModal(designId);
+    };
+  });
+}
+
+// Function to show the view review modal
+function showViewReviewModal(designId) {
+  const modal = document.getElementById('viewReviewModal');
+  const body = document.getElementById('viewReviewBody');
+  if (!modal || !body) return;
+  // Find the review for this designId
+  const reviews = window._existingReviews || [];
+  const review = reviews.find(r => r.designId === designId);
+  if (!review) {
+    body.innerHTML = '<p>Không tìm thấy đánh giá.</p>';
+  } else {
+    body.innerHTML = `
+      <div style="text-align:center;">
+        <img src="${review.avatar || 'resources/user-circle.png'}" alt="Avatar" style="width:60px;height:60px;border-radius:50%;margin-bottom:10px;">
+        <h4 style="margin:0 0 8px 0;">${review.username || ''}</h4>
+        <div style="margin-bottom:8px;">
+          ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+        </div>
+        <p><b>Màu sắc:</b> ${review.color}</p>
+        <p><b>Kích thước:</b> ${review.size}</p>
+        <p><b>Chất liệu:</b> ${review.material}</p>
+        <p><b>Mô tả sản phẩm:</b> ${review.descriptionMatch}</p>
+        <p><b>Nhận xét:</b> ${review.feedback}</p>
+      </div>
+    `;
+  }
+  modal.classList.add('show');
+}
+// Close view review modal
+if (!window._viewReviewModalCloseAttached) {
+  document.addEventListener('click', function(e) {
+    const modal = document.getElementById('viewReviewModal');
+    if (modal && e.target === modal) {
+      modal.classList.remove('show');
+    }
+    if (e.target && e.target.id === 'closeViewReviewModal') {
+      modal.classList.remove('show');
+    }
+  });
+  window._viewReviewModalCloseAttached = true;
 }
 
 window.showChangeCredentials = function() {

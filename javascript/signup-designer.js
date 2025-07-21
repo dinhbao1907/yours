@@ -59,6 +59,12 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   const confirmPassword = document.getElementById('confirm-password').value;
+  // Username validation: at least 6 chars, only letters and numbers
+  if (!/^[A-Za-z0-9]{6,}$/.test(username)) {
+    showSpinner(false);
+    showNotification('Tên đăng nhập phải có ít nhất 6 ký tự, chỉ bao gồm chữ cái và số.');
+    return;
+  }
   try {
     const response = await fetch(`${window.API_BASE_URL}/api/signup-designer`, {
       method: 'POST',

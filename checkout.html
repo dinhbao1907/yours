@@ -727,6 +727,7 @@
     const isBuyNow = urlParams.get('buynow') === '1';
     if (isBuyNow) {
       const buyNowItem = JSON.parse(localStorage.getItem('buyNowItem') || 'null');
+      console.log('[DEBUG] buyNowItem:', buyNowItem);
       if (!buyNowItem) {
         // Show error modal and redirect
         const validationMessage = document.getElementById('validationMessage');
@@ -773,6 +774,7 @@
     shippingFeeElem.textContent = formatVND(SHIPPING_FEE);
     totalPaymentElem.textContent = formatVND(productTotal + SHIPPING_FEE);
     placeOrderBtn.disabled = false;
+    console.log('[DEBUG] placeOrderBtn.disabled:', placeOrderBtn.disabled);
   }
   function getSelectedShippingFee() {
     const radios = document.getElementsByName('shipping');
@@ -791,20 +793,43 @@
       radio.addEventListener('change', renderCheckoutSummary);
     }
     
-    // Populate username field
+    // Autofill username field
     const usernameField = document.getElementById('username');
     const currentUser = localStorage.getItem('currentUser');
     if (usernameField && currentUser) {
       usernameField.value = currentUser;
     }
     
-    // Add form validation for checkout button
+    // --- Enable placeOrderBtn when all fields are filled ---
     const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const requiredFields = ['email', 'name', 'address', 'phone'];
+    function validateCheckoutFields() {
+      let allFilled = true;
+      for (const id of requiredFields) {
+        const el = document.getElementById(id);
+        if (!el || !el.value.trim()) {
+          allFilled = false;
+          break;
+        }
+      }
+      if (placeOrderBtn) placeOrderBtn.disabled = !allFilled;
+      console.log('[DEBUG] validateCheckoutFields: allFilled =', allFilled);
+    }
+    requiredFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', validateCheckoutFields);
+      }
+    });
+    // Initial validation
+    validateCheckoutFields();
+
+    // Add form validation for checkout button
     if (placeOrderBtn) {
       // Log the button's disabled state on page load
       console.log('placeOrderBtn initial disabled state:', placeOrderBtn.disabled);
       placeOrderBtn.addEventListener('click', function(e) {
-        console.log('Place order button clicked!', e, 'Disabled:', placeOrderBtn.disabled);
+        console.log('[DEBUG] Place order button clicked!', e, 'Disabled:', placeOrderBtn.disabled);
         e.preventDefault();
         
         // Get all required fields
@@ -812,6 +837,7 @@
         const name = document.getElementById('name').value.trim();
         const address = document.getElementById('address').value.trim();
         const phone = document.getElementById('phone').value.trim();
+        console.log('[DEBUG] Checkout fields:', { email, name, address, phone });
         
         // Check if any field is empty
         if (!email || !name || !address || !phone) {
@@ -821,6 +847,7 @@
           if (!address) missingFields.push('Địa chỉ giao hàng');
           if (!phone) missingFields.push('Số điện thoại');
           
+          console.log('[DEBUG] Missing fields:', missingFields);
           const validationMessage = document.getElementById('validationMessage');
           validationMessage.textContent = `Vui lòng điền đầy đủ thông tin sau: ${missingFields.join(', ')}`;
           
@@ -832,6 +859,7 @@
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
+          console.log('[DEBUG] Invalid email:', email);
           const validationMessage = document.getElementById('validationMessage');
           validationMessage.textContent = 'Vui lòng nhập địa chỉ email hợp lệ.';
           
@@ -843,6 +871,7 @@
         // Validate phone number (basic validation for Vietnamese numbers)
         const phoneRegex = /^[0-9]{10,11}$/;
         if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+          console.log('[DEBUG] Invalid phone:', phone);
           const validationMessage = document.getElementById('validationMessage');
           validationMessage.textContent = 'Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số).';
           
@@ -852,6 +881,7 @@
         }
         
         // If all validations pass, proceed with payment
+        console.log('[DEBUG] All validations passed. Proceeding with payment.');
         const redirectModal = document.getElementById('redirectModal');
         if (redirectModal) {
           redirectModal.style.display = 'flex';
@@ -871,6 +901,7 @@
         })();
         if (isBuyNow) {
           const buyNowItem = JSON.parse(localStorage.getItem('buyNowItem') || 'null');
+          console.log('[DEBUG] buyNowItem at place order:', buyNowItem);
           if (!buyNowItem) {
             const validationMessage = document.getElementById('validationMessage');
             validationMessage.textContent = 'Không tìm thấy sản phẩm để thanh toán. Vui lòng chọn lại sản phẩm.';
@@ -882,7 +913,6 @@
             return;
           }
           // --- Log buyNowItem and check required fields ---
-          console.log('🛒 buyNowItem:', buyNowItem);
           const requiredFields = ['name', 'price', 'quantity', 'size', 'image'];
           let missingFields = requiredFields.filter(f => !buyNowItem[f]);
           // Accept either designId or productId
