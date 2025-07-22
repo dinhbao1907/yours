@@ -722,6 +722,7 @@
     const totalPaymentElem = document.getElementById('totalPayment');
     const placeOrderBtn = document.getElementById('placeOrderBtn');
     const SHIPPING_FEE = getSelectedShippingFee();
+    let productTotal = 0;
     // --- Add buyNowItem check ---
     const urlParams = new URLSearchParams(window.location.search);
     const isBuyNow = urlParams.get('buynow') === '1';
@@ -766,7 +767,7 @@
       placeOrderBtn.disabled = true;
       return;
     }
-    let productTotal = 0;
+    productTotal = checkedItems.reduce((sum, item) => sum + (parseInt(item.price || 0, 10) * (item.quantity || 1)), 0);
     container.innerHTML = checkedItems.map(item => {
       const price = parseInt(item.price || 0, 10);
       const itemTotal = price * (item.quantity || 1);
