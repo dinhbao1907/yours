@@ -359,6 +359,9 @@ function renderOrderHistory(orders) {
     
     // Render custom design if present
     if (order.customDesign && order.customDesign.designImage) {
+      const canReview = order.status === 'DELIVERED_FINAL';
+      const customDesignId = order.customDesign.designId || order.customDesign.productCode || order.customDesign._id || '';
+      const hasReviewed = existingReviews.some(review => review.designId === customDesignId);
       html += `
         <div class="product-card scale-in animate-delay-2" style="min-width:220px;max-width:300px;width:100%;background:#fff;border:1.5px solid #eee;border-radius:15px;padding:18px 18px 24px 18px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;position:relative;box-shadow:0 6px 16px rgba(90,34,212,0.10);overflow:hidden;margin:18px 12px 32px 12px;">
           <img src="${order.customDesign.designImage}" alt="Thiết kế tùy chỉnh" style="width:auto;max-width:220px;max-height:180px;display:block;margin:0 auto;border-radius:10px;">
@@ -366,6 +369,11 @@ function renderOrderHistory(orders) {
           <p style="color:#666;font-size:14px;margin:5px 0;">Loại: ${order.customDesign.designType || ''}</p>
           <p style="color:#666;font-size:14px;margin:5px 0;">Size: ${order.customDesign.size || ''}</p>
           <p style="color:#666;font-size:14px;margin:5px 0;">Số lượng: ${order.customDesign.quantity || 1}</p>
+          ${canReview && customDesignId ? (
+            hasReviewed
+              ? `<button class="review-btn view-review-btn" data-design-id="${customDesignId}" style="background:#28a745;">Đã đánh giá</button>`
+              : `<button class="review-btn bounce-in" data-design-id="${customDesignId}">Đánh giá sản phẩm</button>`
+          ) : ''}
         </div>
       `;
     }

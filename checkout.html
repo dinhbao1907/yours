@@ -744,6 +744,19 @@
         if (placeOrderBtn) placeOrderBtn.disabled = true;
         return;
       }
+      // Show custom design image if present
+      container.innerHTML = `
+        <div class="checkout-summary-product">
+          <img src="${buyNowItem.designImage || buyNowItem.image}" alt="${buyNowItem.name}" class="checkout-summary-img">
+          <div class="checkout-summary-info">
+            <div class="checkout-summary-title">${buyNowItem.name}</div>
+            <div class="checkout-summary-size">Size: ${buyNowItem.size || ''}</div>
+            <div class="checkout-summary-qty">Số lượng: <span>${buyNowItem.quantity || 1}</span></div>
+          </div>
+          <div class="checkout-summary-price">${formatVND(buyNowItem.price * buyNowItem.quantity)}</div>
+        </div>
+      `;
+      productTotal = buyNowItem.price * buyNowItem.quantity;
     }
     if (!checkedItems.length) {
       container.innerHTML = '<p style="text-align:center;color:#8A4AF3;font-size:1.1rem;margin:24px 0;">Không có sản phẩm nào được chọn để thanh toán.</p>';
